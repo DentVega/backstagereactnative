@@ -1,0 +1,9 @@
+{
+  "extends": "@react-native/typescript-config/tsconfig.json",
+  "compilerOptions": {
+    "types": ["jest", "react", "react-native"],
+    "module": "esnext",
+    "moduleResolution": "bundler"
+  },
+  "include": ["App.tsx", "index.js", "src", "__tests__"]
+}

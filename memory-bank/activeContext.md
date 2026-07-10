@@ -1,0 +1,53 @@
+# Active Context
+
+> **Agent note:** This is your short-term memory. Read it at the start of every session and update it immediately after making an important decision, changing focus, or encountering a blocker.
+
+## Current Focus
+- **Intent `01-vertical-slice` COMPLETO (4/4 bolts).** Slice end-to-end verificado por tests + builds + resolve runtime de Backstage. Única pendiente: **montaje en dispositivo real (Layer 2)**, bloqueado por setup del build nativo RN en monorepo pnpm.
+- **Bolt 4 (Host Runtime + Integración) COMPLETO** ✓ — loader (resolve→verify→mount→fallback), sesión mock + capabilities, nav, remote `account_dashboard` wired. 18 tests nuevos. Ver `bolts/bolt-4-host-integration/result.md`.
+- Bolts 1 (Foundations), 3 (Dashboard), 2 (Backstage repo separado) ✓.
+- **Tests:** 74 móvil + 26 Backstage = **100**; typecheck 5/5; bundles android/ios compilan con MF.
+- Dos repos: móvil (este) + `/Volumes/SSDExterno/prodproyects/backstage-web` (Next.js 16).
+- Project goal: migrate an **Android bank app** to **React Native + Re.Pack**, and build a **"Spotify for Backstage" web platform** (Next.js) to create/version/distribute **miniapps** consumed by the mobile host as **federated remotes** or **shared packages**.
+
+## Recent Technical Decisions
+- Bundler = Re.Pack (Module Federation v2), NOT Metro.
+- Estado: **Zustand + React Query** como singletons compartidos.
+- Backstage web = **Next.js (App Router)**; hosting de chunks = **dev server local** por ahora (CDN diferido a Operations).
+- Miniapp piloto = **Account Dashboard** (solo-JS, **cero módulos nativos** en el slice).
+- **DOS repos:** (A) móvil = este repo `backstagereactnative` (pnpm: `apps/host`, `miniapps/account-dashboard`, `packages/{ui-kit,miniapp-contract,host-runtime}`); (B) **Backstage = repo git SEPARADO** `backstage-web` (otro equipo).
+- **Contrato = paquete publicado versionado `@org/miniapp-contract`** (fuente en repo móvil, publicado a npm privado; Backstage lo instala por versión). Único acoplamiento cross-repo.
+
+## Known Issues / Blockers
+- ⚠️ `@module-federation/enhanced` fijado a **0.9.0** (no subir a 2.x con Re.Pack 5.2.5).
+- Verificación en dispositivo (Layer 2) pendiente hasta que haya flujo montable (Bolt 4).
+- A decidir por ADR en Construction: mecanismo de integridad/firma de chunk (Bolt 4), shape del registry store (Bolt 2).
+
+## Intent 02 (miniapp-platform) — MVP COMPLETO (4/4 bolts) ✅
+- B1 Publicar paquetes (ui-kit→dist + publishConfig) ✓ · B2 Template GitHub (miniapp-template, remote compila) ✓ · B3 Migrar account-dashboard a repo propio (monorepo sin miniapps/*) ✓ · B4 Scaffolder Backstage (GitProvider + /api/scaffold + /create, 37 tests) ✓.
+- **4 repos separados:** móvil (host), `backstage-web`, `miniapp-template`, `miniapp-account-dashboard`.
+- **Pendiente para producción real:** dar el **org de GitHub real** (reemplazar `@org` placeholder) → publicar paquetes + probar scaffold/creación real. Diferido a **Intent 03**: CI por miniapp (delta 5) + CDN de chunks (delta 6).
+- **Sigue bloqueado (independiente):** build nativo del host (entorno Android) — impide correr la app en device.
+
+## Aclaración de arquitectura (2026-07-09) — plataforma real de miniapps
+El usuario aclaró la visión objetivo (ver `standards/system-architecture.md`, "Three-plane architecture"):
+- Las **miniapps NO viven en el monorepo móvil** — cada una es su **propio repo git**, creado por Backstage.
+- **Backstage = Scaffolder + Registry + Distribución** (capacidad ① "Create miniapp" → crea repo git nuevo desde template).
+- Cada miniapp tiene **su CI** que buildea el chunk → CDN → publica a Backstage; el host resuelve la URL y monta en runtime.
+- **Corrección:** `account-dashboard` está hoy DENTRO del monorepo (simplificación del slice) → debe salir a su repo.
+- **Roadmap (6 deltas):** (1) publicar contract+ui-kit a GitHub Packages; (2) template de miniapp; (3) sacar account-dashboard a repo propio; (4) scaffolder en Backstage (API git); (5) CI por miniapp; (6) CDN de chunks.
+- **Candidato a Intent 02** ("Plataforma de miniapps"): planificar con `/aidlc-inception`.
+
+## Intent 04 (backstage-ui-auth) — COMPLETO (4/4 bolts) ✅
+- **Objetivo:** UI de Backstage con más detalle de miniapps (versión, fecha de creación, repo, estado CI) + login GitHub para acceder a las miniapps creadas. Todo en `backstage-web` (cero módulos nativos).
+- **B04-1 Auth GitHub (Auth.js v5)** ✓ — NextAuth v5, provider GitHub, middleware gate (307 → /signin), callbacks puros testeados. Token server-side, nunca al browser.
+- **B04-2 Registry metadatos (createdAt, repoUrl)** ✓ (2026-07-10) — `MiniappRecord += createdAt?/repoUrl?`, `registerMiniapp(...,now)`, scaffolder setea repoUrl, seed backfillea. ADR-019. **70 tests** Backstage, typecheck + build limpios. Ver `bolts/04-2-registry-metadata/outcome.md`.
+- **B04-3 Estado de CI (GitHub Actions)** ✓ (2026-07-10) — `lib/ci/` (`CiStatusProvider`, `githubCiProvider`, `mockCiProvider`, `withCache` 60s, `getCiProvider()`); `unknown` como fallback resiliente; token per-request server-side. ADR-020. **88 tests**. Ver `bolts/04-3-ci-status/outcome.md`.
+- **B04-4 UI de detalle + catálogo enriquecido** ✓ (2026-07-10) — ruta `/miniapp/[id]` (server component) + catálogo con badge CI/fecha/link; view-models puros (`getMiniappDetail`, `listCatalog+`); componentes `CiBadge`/`VersionList`/`MiniappHeader` (client, RTL); CI resuelto server-side (token nunca al bundle). ADR-021. **102 tests** (antes 88, +14), typecheck + build limpios. Ver `bolts/04-4-detail-ui/outcome.md`.
+- **Activación (no bloquea):** scope OAuth `read:user` → badges CI reales darán `unknown` hasta ampliar a `repo`/`actions:read` en el GitHub OAuth App.
+
+## Immediate Next Step
+- **Intent 04 cerrado.** Opciones: `/reflect` (retrospectiva del intent 04), `/operations` (deploy Backstage a Vercel + activar OAuth/CDN/CI reales), o `/aidlc-inception` (nuevo intent). Sigue pendiente independiente: build nativo del host (entorno Android).
+- **Build nativo — en progreso (Operations):** 3 blockers resueltos (gradle-plugin devDeps en host, NDK 26.1 reparado, flash-list/screens pineados; autolinking OK). **Falta 1:** `MissingValueException` en `:app:compileDebugJavaWithJavac` (New Arch RN 0.76, no pnpm) — diagnósticos en `operations/activation-checklist.md` (bisecar módulos nativos / `--debug` / setear `react{reactNativeDir}`). Luego iOS `pod install` + montaje en dispositivo (device Android conectado).
+- Alternativas: **`/parity`** (cobertura vs. app Android original), o **`/aidlc-inception`** (siguiente intent: transferencias, etc.).
+- Recordatorios: `IntegrityVerifier` no-op (cripto antes de prod); Backstage sin auth/CDN; contrato aún `file:`.

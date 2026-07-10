@@ -1,0 +1,33 @@
+{
+  "name": "@org/host-runtime",
+  "version": "0.1.0",
+  "description": "Host-side miniapp loader (resolve → verify → mount → fallback). Portable logic + interfaces; concrete Re.Pack/MF adapters live in the host app.",
+  "license": "UNLICENSED",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@org/miniapp-contract": "workspace:*",
+    "@org/ui-kit": "workspace:*"
+  },
+  "peerDependencies": {
+    "react": "*",
+    "react-native": "*"
+  },
+  "devDependencies": {
+    "@org/ui-kit": "workspace:*",
+    "@react-native/babel-preset": "0.76.6",
+    "@testing-library/react-native": "catalog:",
+    "@types/jest": "^29.5.14",
+    "@types/react": "catalog:",
+    "babel-jest": "^29.7.0",
+    "jest": "catalog:",
+    "react": "catalog:",
+    "react-native": "catalog:",
+    "react-test-renderer": "catalog:",
+    "typescript": "catalog:"
+  }
+}

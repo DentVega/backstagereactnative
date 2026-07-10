@@ -1,0 +1,16 @@
+{
+  "name": "backstagereactnative-monorepo",
+  "private": true,
+  "packageManager": "pnpm@10.14.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "typecheck": "pnpm -r --if-present typecheck",
+    "test": "pnpm -r --if-present test",
+    "build:packages": "pnpm -r --filter \"./packages/**\" --if-present build"
+  },
+  "devDependencies": {
+    "@swc/helpers": "^0.5.23"
+  }
+}

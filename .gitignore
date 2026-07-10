@@ -1,0 +1,28 @@
+node_modules/
+dist/
+build/
+coverage/
+*.log
+.DS_Store
+
+# RN / native
+apps/host/android/.gradle/
+apps/host/android/app/build/
+apps/host/android/build/
+apps/host/ios/Pods/
+apps/host/ios/build/
+apps/host/ios/*.xcworkspace/xcuserdata/
+*.hprof
+.cxx/
+
+# Re.Pack / bundler
+apps/host/build/
+apps/host/.rspack/
+*.jsbundle
+
+# IDE
+.idea/
+.vscode/
+
+# Vendored skills (reinstalables con /setup-skills)
+.claude/skills/

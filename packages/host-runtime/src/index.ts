@@ -1,0 +1,41 @@
+export type {
+  FallbackReason,
+  LoaderState,
+  LoaderEvent,
+} from "./loaderState";
+export { initialLoaderState, nextLoaderState } from "./loaderState";
+
+export type { HostProvided, EvaluateResult } from "./evaluate";
+export { evaluateManifest } from "./evaluate";
+
+export type { IntegrityVerifier } from "./integrity";
+export { noopVerifier } from "./integrity";
+
+export type { ResolveClient } from "./ResolveClient";
+export { httpResolveClient } from "./ResolveClient";
+
+export type { ChunkLoader, EntryComponent } from "./ChunkLoader";
+
+export type { UseMiniappDeps, UseMiniappResult } from "./useMiniapp";
+export { useMiniapp } from "./useMiniapp";
+
+export type { MiniappHostProps } from "./MiniappHost";
+export { MiniappHost } from "./MiniappHost";
+
+// --- Capability grant helper (host owns the scoped, revocable grant) ---
+import type { Capability, CapabilityGrant } from "@org/miniapp-contract";
+
+export interface ScopedGrant {
+  readonly grant: CapabilityGrant;
+  readonly revoke: () => void;
+}
+
+export function createScopedGrant(granted: readonly Capability[]): ScopedGrant {
+  let revoked = false;
+  return {
+    grant: { granted, isRevoked: () => revoked },
+    revoke: () => {
+      revoked = true;
+    },
+  };
+}

@@ -1,0 +1,45 @@
+buildscript {
+    ext {
+        buildToolsVersion = "35.0.0"
+        minSdkVersion = 24
+        compileSdkVersion = 35
+        targetSdkVersion = 34
+        ndkVersion = "26.1.10909125"
+        kotlinVersion = "1.9.24"
+    }
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath("com.android.tools.build:gradle")
+        classpath("com.facebook.react:react-native-gradle-plugin")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin")
+    }
+}
+
+apply plugin: "com.facebook.react.rootproject"
+
+// The RN gradle plugin's version provider for the react-android / hermes-android
+// artifacts resolves empty in this setup ("Cannot query the value of this provider").
+// Pin concrete versions (published on Maven Central) so they resolve.
+def RN_VERSION = "0.76.6"
+allprojects {
+    configurations.all {
+        resolutionStrategy {
+            eachDependency { details ->
+                if (details.requested.group == "com.facebook.react") {
+                    if (details.requested.name == "react-android" || details.requested.name == "hermes-android") {
+                        details.useVersion(RN_VERSION)
+                    }
+                }
+            }
+            dependencySubstitution {
+                substitute(module("com.facebook.react:react-native"))
+                    .using(module("com.facebook.react:react-android:${RN_VERSION}"))
+                substitute(module("com.facebook.react:hermes-engine"))
+                    .using(module("com.facebook.react:hermes-android:${RN_VERSION}"))
+            }
+        }
+    }
+}
