@@ -18,14 +18,22 @@ let resolverRegistered = false;
 export function setupScriptManager(): void {
   if (resolverRegistered) return;
   resolverRegistered = true;
-  ScriptManager.shared.addResolver(async (scriptId: string, caller?: string) => {
-    // scriptId is the container/chunk id; match by known container names.
+  ScriptManager.shared.addResolver(async (scriptId: string, _caller?: string) => {
+    // Federation remotes resolved via Backstage: match by known container names.
     for (const [container, url] of resolvedUrls) {
       if (scriptId === container || scriptId.startsWith(container)) {
         return {url: Script.getRemoteURL(url)};
       }
     }
-    return undefined;
+    // Everything else is a LOCAL split chunk (vendors-*, async app chunks).
+    // With the Module Federation async boundary these load through the
+    // ScriptManager too, so they must resolve to the dev server in dev and to
+    // the bundled filesystem location in release builds.
+    return {
+      url: __DEV__
+        ? Script.getDevServerURL(scriptId)
+        : Script.getFileSystemURL(scriptId),
+    };
   });
 }
 
