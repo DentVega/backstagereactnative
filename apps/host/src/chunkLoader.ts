@@ -15,6 +15,7 @@ interface MFInstance {
     remotes: Array<{name: string; entry: string; alias?: string; type?: string}>,
     options?: {force?: boolean},
   ) => void;
+  loadRemote: <T>(id: string) => Promise<T>;
 }
 
 function getFederationHost(): MFInstance | undefined {
@@ -76,24 +77,32 @@ export function setupScriptManager(): void {
 export const repackChunkLoader: ChunkLoader = {
   async load(resolved: ResolveResponse): Promise<EntryComponent> {
     setupScriptManager();
-    // `account_dashboard` is the MF container name (matches manifest.id).
-    resolvedUrls.set('account_dashboard', resolved.url);
+    // Generic over any miniapp: the MF container name is the resolved id.
+    const name = resolved.id;
+    resolvedUrls.set(name, resolved.url);
     // Base dir the container's own chunks are served from (same dir as container).
-    resolvedBases.set('account_dashboard', resolved.url.replace(/\/[^/]*$/, '/'));
-    // MF v2's RepackCorePlugin loads the remote entry from `remoteInfo.entry`
-    // (the STATIC rspack `remotes` URL) via ScriptManager.loadScript with an
-    // explicit URL — which bypasses ScriptManager resolvers. So a resolver can't
-    // redirect the entry. Instead re-register the remote at runtime with the
-    // Backstage-resolved URL; `force` replaces the static entry. This is what
-    // makes dynamic resolution (ADR-009) actually reach MF v2 on-device.
-    getFederationHost()?.registerRemotes(
-      [{name: 'account_dashboard', entry: resolved.url, type: 'global'}],
+    resolvedBases.set(name, resolved.url.replace(/\/[^/]*$/, '/'));
+
+    const host = getFederationHost();
+    if (host === undefined) {
+      throw new Error('Module Federation runtime not initialised');
+    }
+    // MF v2's RepackCorePlugin loads the remote entry from `remoteInfo.entry` via
+    // ScriptManager.loadScript with an explicit URL — bypassing resolvers. So we
+    // register the remote at runtime with the Backstage-resolved URL (`force`
+    // replaces any static entry), then load it via the MF runtime API. Using
+    // `loadRemote` (not a static `import()`) is what lets ANY miniapp mount
+    // without per-miniapp wiring in rspack.config. This is ADR-009 on-device.
+    host.registerRemotes(
+      [{name, entry: resolved.url, type: 'global'}],
       {force: true},
     );
-    // Static specifier so rspack wires the remote consumption; URL is dynamic.
-    const mod = (await import('account_dashboard/Entry')) as {
-      default: EntryComponent;
-    };
+    const mod = await host.loadRemote<{default: EntryComponent}>(
+      `${name}/Entry`,
+    );
+    if (mod?.default === undefined) {
+      throw new Error(`miniapp "${name}" did not expose a default ./Entry`);
+    }
     return mod.default;
   },
 };
