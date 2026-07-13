@@ -46,7 +46,20 @@ El usuario aclaró la visión objetivo (ver `standards/system-architecture.md`, 
 - **B04-4 UI de detalle + catálogo enriquecido** ✓ (2026-07-10) — ruta `/miniapp/[id]` (server component) + catálogo con badge CI/fecha/link; view-models puros (`getMiniappDetail`, `listCatalog+`); componentes `CiBadge`/`VersionList`/`MiniappHeader` (client, RTL); CI resuelto server-side (token nunca al bundle). ADR-021. **102 tests** (antes 88, +14), typecheck + build limpios. Ver `bolts/04-4-detail-ui/outcome.md`.
 - **Activación (no bloquea):** scope OAuth `read:user` → badges CI reales darán `unknown` hasta ampliar a `repo`/`actions:read` en el GitHub OAuth App.
 
+## Intent 06 (creación real de miniapps) — en progreso
+- **B06-1 UI de creación** ✓ — botón "＋ Crear miniapp" en catálogo + `/create` con validación de id (`parseMiniappId`) y links de resultado (repo + detalle). 104 tests.
+- **B06-2 Guard de autorización** ✓ — `canScaffold(login, allowlist)` fail-closed + `SCAFFOLD_ALLOWED_LOGINS` (CSV); guard en `/api/scaffold` antes de tocar GitHub; login capturado del profile OAuth. ADR-022. **117 tests**.
+- **B06-3 Persistencia + Activación (Operations) — PENDIENTE (requiere cuenta del usuario):** provisionar Upstash KV → `getStore()` usa KV; setear secrets en Vercel (`GITHUB_TOKEN` scope repo, `MINIAPP_TEMPLATE_REPO=DentVega/miniapp-template`, `SCAFFOLD_ALLOWED_LOGINS=DentVega`, `PUBLISH_TOKEN`); redeploy; smoke E2E.
+- **Nota:** en el deploy actual, sin `SCAFFOLD_ALLOWED_LOGINS`, la creación está fail-closed (403) — seguro hasta activar el 06-3. El dominio del scaffolder ya existía (Intent 02); el template sustituye `__MINIAPP_ID__` (init-template.yml, ADR-011).
+
+## Demo desplegada (2026-07-10)
+- **Backstage web EN VIVO:** https://backstage-web-blond.vercel.app (Vercel, import de `DentVega/backstage-web`, auto-redeploy en push a `main`).
+- 4 repos públicos en `github.com/DentVega` (backstagereactnative, backstage-web, miniapp-template, miniapp-account-dashboard).
+- Deploy: login GitHub OAuth activo, `jsonStore` con `data/registry.json` (2 miniapps seed), `CI_STATUS_ENABLED=false`. Contrato vendorizado + tracing de `data/` (commit `fd3f508`). Smoke-test OK (gate 307, /api/miniapps con datos, upload 401).
+- **El proyecto es una DEMO para clientes** → prioridad: pulido visible, READMEs con capturas/diagrama, flujo de demo. Build nativo Android sigue despriorizado.
+
 ## Immediate Next Step
+- **Intent 04 cerrado + demo en vivo.** Siguiente de mayor retorno para el showcase: READMEs con capturas/GIF + diagrama de arquitectura en los 4 repos; documentar un "demo flow" de 1 min.
 - **Intent 04 cerrado.** Opciones: `/reflect` (retrospectiva del intent 04), `/operations` (deploy Backstage a Vercel + activar OAuth/CDN/CI reales), o `/aidlc-inception` (nuevo intent). Sigue pendiente independiente: build nativo del host (entorno Android).
 - **Build nativo — en progreso (Operations):** 3 blockers resueltos (gradle-plugin devDeps en host, NDK 26.1 reparado, flash-list/screens pineados; autolinking OK). **Falta 1:** `MissingValueException` en `:app:compileDebugJavaWithJavac` (New Arch RN 0.76, no pnpm) — diagnósticos en `operations/activation-checklist.md` (bisecar módulos nativos / `--debug` / setear `react{reactNativeDir}`). Luego iOS `pod install` + montaje en dispositivo (device Android conectado).
 - Alternativas: **`/parity`** (cobertura vs. app Android original), o **`/aidlc-inception`** (siguiente intent: transferencias, etc.).
