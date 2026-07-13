@@ -9,12 +9,15 @@ export interface ResolveClient {
 export function httpResolveClient(baseUrl: string): ResolveClient {
   return {
     async resolve(request: ResolveRequest): Promise<ResolveResponse> {
-      const url = new URL("/api/resolve", baseUrl);
-      url.searchParams.set("id", request.id);
+      // Build the query manually: React Native's URL polyfill does NOT implement
+      // URLSearchParams.set (throws "not implemented" on Hermes), so `new URL` +
+      // searchParams cannot be used here even though it works under Node in tests.
+      const params = [`id=${encodeURIComponent(request.id)}`];
       if (request.hostVersion !== undefined) {
-        url.searchParams.set("hostVersion", request.hostVersion);
+        params.push(`hostVersion=${encodeURIComponent(request.hostVersion)}`);
       }
-      const res = await fetch(url.toString());
+      const url = `${baseUrl.replace(/\/+$/, "")}/api/resolve?${params.join("&")}`;
+      const res = await fetch(url);
       if (!res.ok) {
         throw new Error(`resolve failed: HTTP ${res.status}`);
       }
