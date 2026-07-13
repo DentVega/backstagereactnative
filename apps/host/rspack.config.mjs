@@ -105,6 +105,14 @@ export default Repack.defineRspackConfig({
           version: pkgVersion('@react-navigation/native-stack'),
           requiredVersion: '^7.0.0',
         },
+        // Provide the design-system/theming lib to the share scope so remotes use
+        // the host's ThemeProvider/ThemeContext (stateful → must be a singleton).
+        '@org/ui-kit': {
+          singleton: true,
+          eager: true,
+          version: pkgVersion('@org/ui-kit'),
+          requiredVersion: '^0.1.0',
+        },
       },
     }),
   ],

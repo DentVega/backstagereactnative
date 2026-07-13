@@ -65,6 +65,9 @@ export function useMiniapp(deps: UseMiniappDeps): UseMiniappResult {
       } catch (err) {
         if (cancelled.current) return;
         const detail = err instanceof Error ? err.message : "unknown error";
+        // Surface the failure so miniapp load errors are diagnosable in the field
+        // (the fallback UI intentionally hides the detail from users).
+        console.warn("[miniapp] load failed:", detail);
         // resolve is the first network step; treat generic failures as download-failed
         // once resolved, else resolve-failed. Kept simple: inspect message prefix.
         const reason = detail.startsWith("resolve failed") ? "resolve-failed" : "download-failed";
