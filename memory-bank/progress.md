@@ -3,7 +3,7 @@
 > **Agent note:** This is your long-term progress tracker. Update it whenever you complete a Bolt, close a phase, or reach a major milestone.
 
 ## Overall Status
-- **Current Phase:** Intents 01/02/03 con Construction COMPLETA · build nativo del host bloqueado por entorno · deploy Vercel = manual (tu cuenta)
+- **Current Phase:** Intents 01/02/03 con Construction COMPLETA · **build nativo DESBLOQUEADO (2026-07-13:** era Zulu 17 → OpenJDK 17 Homebrew; `assembleDebug` ✅ `app-debug.apk`) · falta instalar en device · deploy Vercel = manual (tu cuenta)
 - **Bolts Completed:** 4 / 4 (intent `01-vertical-slice`) · 100 tests verdes (74 móvil + 26 Backstage)
 - **Operations:** tamaños dentro de presupuesto (host 2.48MB/3MB, remote ~430KB/600KB); hosting dev local (CDN diferido); ver `operations/activation-checklist.md` (bloqueante: build nativo pnpm) y `operations/operations-runbook.md`.
 
@@ -14,7 +14,7 @@
 - [x] Bolt 1 Foundations: monorepo + contract (publicable) + ui-kit + host-runtime shell · 44 tests verdes
 - [x] Backstage web registry scaffolded — repo separado, resolve verificado en server real
 - [x] Loader host↔Backstage integrado (resolve→verify→mount→fallback) — verificado por tests + builds
-- [ ] Montaje del remote en DISPOSITIVO real (Layer 2) — bloqueado por setup build nativo RN+pnpm monorepo
+- [x] **Montaje del remote en DISPOSITIVO real (Layer 2) — LOGRADO 2026-07-13** en emulador `Pixel_10_Pro_XL`: resolve→download(:9000)→mount→render con datos + FlashList + ui-kit compartido + capabilities post-login. Requirió 2 fixes runtime (URLSearchParams, override MF v2) + compartir `@org/ui-kit` como singleton. Ver `audit.md` y `operations/activation-checklist.md`.
 - [ ] Android bank-app parity baseline mapped (`/parity`)
 
 ## Intent 02 — miniapp-platform (Inception completa, Construction pendiente)
