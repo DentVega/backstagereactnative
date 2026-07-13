@@ -11,6 +11,8 @@
     "build:packages": "pnpm -r --filter \"./packages/**\" --if-present build"
   },
   "devDependencies": {
+    "@babel/plugin-syntax-typescript": "^7.25.2",
+    "@react-native/community-cli-plugin": "0.76.6",
     "@swc/helpers": "^0.5.23"
   }
 }
