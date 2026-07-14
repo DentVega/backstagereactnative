@@ -9,7 +9,8 @@ export type { HostProvided, EvaluateResult } from "./evaluate";
 export { evaluateManifest } from "./evaluate";
 
 export type { IntegrityVerifier } from "./integrity";
-export { noopVerifier } from "./integrity";
+export { noopVerifier, sha256Verifier } from "./integrity";
+export { sha256Hex } from "./sha256";
 
 export type { ResolveClient } from "./ResolveClient";
 export { httpResolveClient } from "./ResolveClient";
