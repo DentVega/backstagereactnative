@@ -6,6 +6,7 @@ import {
   MiniappHost,
   createScopedGrant,
   httpResolveClient,
+  sha256Verifier,
 } from '@org/host-runtime';
 import type {RootStackParamList} from '../navigation';
 import {useSession, deriveCapabilities} from '../session/store';
@@ -15,6 +16,8 @@ import {HOST_PROVIDED, BACKSTAGE_BASE_URL} from '../hostProvided';
 type Props = NativeStackScreenProps<RootStackParamList, 'Miniapp'>;
 
 const resolveClient = httpResolveClient(BACKSTAGE_BASE_URL);
+// Verify the downloaded chunk's sha256 against the manifest before mounting.
+const integrityVerifier = sha256Verifier();
 
 export function MiniappScreen({route}: Props): React.JSX.Element {
   const theme = useTheme();
@@ -35,6 +38,7 @@ export function MiniappScreen({route}: Props): React.JSX.Element {
         chunkLoader={repackChunkLoader}
         hostProvided={HOST_PROVIDED}
         capabilities={grant}
+        integrity={integrityVerifier}
       />
     </SafeAreaView>
   );
