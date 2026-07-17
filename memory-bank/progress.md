@@ -3,9 +3,10 @@
 > **Agent note:** This is your long-term progress tracker. Update it whenever you complete a Bolt, close a phase, or reach a major milestone.
 
 ## Overall Status
-- **Current Phase:** Intents 01/02/03 con Construction COMPLETA · **build nativo DESBLOQUEADO (2026-07-13:** era Zulu 17 → OpenJDK 17 Homebrew; `assembleDebug` ✅ `app-debug.apk`) · falta instalar en device · deploy Vercel = manual (tu cuenta)
-- **Bolts Completed:** 4 / 4 (intent `01-vertical-slice`) · 100 tests verdes (74 móvil + 26 Backstage)
-- **Operations:** tamaños dentro de presupuesto (host 2.48MB/3MB, remote ~430KB/600KB); hosting dev local (CDN diferido); ver `operations/activation-checklist.md` (bloqueante: build nativo pnpm) y `operations/operations-runbook.md`.
+- **Current Phase (2026-07-17): PRODUCCIÓN — plataforma live y validada end-to-end en dispositivo.** Backstage desplegado en Vercel (`backstage-web-blond.vercel.app`); registry en Upstash Redis; chunks en Vercel Blob (CDN); integridad sha256 real; el host resuelve+verifica+monta desde internet sin dependencia local.
+- **Bolts Completed:** 01 (4/4) · 02 (4/4) · 03 (4/4) · 04 (parcial + publish-UI hecho fuera de bolt). Además, en modo directo esta sesión se cerró TODA la deuda de Operations (build, storage, CDN, integridad, deploy).
+- **Verificado on-device** (emulador saliendo a internet como un teléfono real): resolve→Upstash→verify sha256→Blob CDN→mount. Ver `audit.md` (2026-07-13/17) y `operations/activation-checklist.md`.
+- **Único pendiente formal:** publicar `@dentvega/miniapp-contract` a GitHub Packages (esperando PAT `write:packages`). Follow-ons: Home dinámico del host, `@dentvega/ui-kit`.
 
 ## Milestones Achieved
 - [x] Memory Bank and standards initialized
@@ -34,10 +35,20 @@
 - **Decisiones:** Auth.js v5 + GitHub · toda la UI tras login (API fuera del gate) · CI status = GitHub Actions API (token de sesión, cache, fallback) · sin ACL por org (MVP) · scope read:user + CI de repos públicos.
 - **Bolts 04:** B1 `Completed` ✓ (Login GitHub: Auth.js v5 + middleware gate; 66 tests; redirect 307→/signin verificado en server real) · B2 Registry metadatos · B3 Estado de CI · B4 UI detalle+catálogo. Ver `bolts/04-1-*`.
 
-## Deuda técnica abierta (para Operations / próximo bolt)
-- **Build nativo en monorepo pnpm:** `settings.gradle` de RN no resuelve `@react-native/gradle-plugin` (hoisted). Hoistear RN build tooling + ajustar rutas gradle; iOS `pod install` con ruby que tenga CocoaPods.
-- **Integridad de chunk:** `IntegrityVerifier` es no-op (ADR-008) — implementar sha256/firma antes de prod.
-- **Backstage:** sin auth, JSON fs no transaccional, contrato vía `file:` (publicar a GitHub Packages), CDN de artefactos.
+## Deuda técnica — RESUELTA esta sesión (2026-07-13 → 07-17)
+- ✅ **Build nativo:** era la JVM (Zulu 17) → OpenJDK 17 Homebrew. `assembleDebug` ✅, corre en emulador.
+- ✅ **Integridad de chunk:** `sha256Verifier` real (pura-JS host + node crypto backstage); no-op de ADR-008 reemplazado; probado (manipulación → bloqueo).
+- ✅ **Backstage auth:** login GitHub (Auth.js v5) verificado.
+- ✅ **Registry store:** Upstash Redis en prod (bug de auto-deserialización fixed). Ya no es JSON fs.
+- ✅ **CDN de chunks:** Vercel Blob (público, URLs deterministas), verificado sirviendo al device.
+- ✅ **Deploy:** live en Vercel.
+
+## Deuda técnica — abierta (menor)
+- **Contrato `@org` vía `file:`/vendor:** publicar `@dentvega/miniapp-contract` (y follow-on `@dentvega/ui-kit`) a GitHub Packages — pendiente PAT `write:packages`.
+- **Integridad = hash, no firma:** protege integridad, no autenticidad de origen (firma con clave = paso mayor futuro).
+- **iOS device:** `pod install` presumiblemente OK (CocoaPods 1.16.2) pero no verificado en iOS real.
+- **Home del host hardcodeado** a una miniapp — falta catálogo dinámico (`GET /api/miniapps` → lista).
+- `@module-federation/enhanced` fijado a 0.9.0 (no subir con Re.Pack 5.2.5).
 
 ## Bolts (Execution Units) — intent 01-vertical-slice
 - **Bolt 1:** `Completed` ✓ — Foundations. 44 tests verdes; host compila android/ios con Re.Pack+MF v2. Ver `bolts/bolt-1-foundations/result.md`.

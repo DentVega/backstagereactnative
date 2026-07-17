@@ -2,13 +2,24 @@
 
 > **Agent note:** This is your short-term memory. Read it at the start of every session and update it immediately after making an important decision, changing focus, or encountering a blocker.
 
-## Current Focus
-- **Intent `01-vertical-slice` COMPLETO (4/4 bolts).** Slice end-to-end verificado por tests + builds + resolve runtime de Backstage. Única pendiente: **montaje en dispositivo real (Layer 2)**, bloqueado por setup del build nativo RN en monorepo pnpm.
-- **Bolt 4 (Host Runtime + Integración) COMPLETO** ✓ — loader (resolve→verify→mount→fallback), sesión mock + capabilities, nav, remote `account_dashboard` wired. 18 tests nuevos. Ver `bolts/bolt-4-host-integration/result.md`.
-- Bolts 1 (Foundations), 3 (Dashboard), 2 (Backstage repo separado) ✓.
-- **Tests:** 74 móvil + 26 Backstage = **100**; typecheck 5/5; bundles android/ios compilan con MF.
-- Dos repos: móvil (este) + `/Volumes/SSDExterno/prodproyects/backstage-web` (Next.js 16).
-- Project goal: migrate an **Android bank app** to **React Native + Re.Pack**, and build a **"Spotify for Backstage" web platform** (Next.js) to create/version/distribute **miniapps** consumed by the mobile host as **federated remotes** or **shared packages**.
+## Current Focus (actualizado 2026-07-17)
+- **La plataforma está VIVA en producción y validada end-to-end en dispositivo.** El camino real está probado: el emulador (como un teléfono real, sin `adb reverse`) resuelve desde **Backstage en Vercel** → registry en **Upstash** → **verifica sha256** → baja el chunk de **Vercel Blob CDN** → **monta** la miniapp.
+- **Deploy live:** `https://backstage-web-blond.vercel.app` (Next.js 16 en Vercel).
+- **Lo logrado en la sesión 2026-07-13 → 07-17** (ver `## Sesión` abajo + `audit.md`): build nativo desbloqueado, primer mount on-device, loader genérico, login GitHub, crear miniapps, publicar versión desde la UI, storage de prod (Upstash + Blob), integridad sha256 real, deploy a Vercel.
+- **Único pendiente formal:** publicar el contrato `@org/miniapp-contract` → `@dentvega/miniapp-contract` a GitHub Packages (pausado esperando un PAT con `write:packages`). Follow-ons: Home dinámico del host; `@org/ui-kit` publicado.
+- Project goal: migrate an **Android bank app** to **React Native + Re.Pack**, and build a **"Spotify for Backstage" web platform** (Next.js) to create/version/distribute **miniapps** consumed by the mobile host as **federated remotes**.
+
+## Sesión 2026-07-13 → 07-17 — de "compila" a producción
+1. **Build nativo desbloqueado** — root cause: JVM **Azul Zulu 17** (no el proyecto); fix: **OpenJDK 17 Homebrew**. `assembleDebug` ✅.
+2. **Primer mount on-device** + 3 bugs de runtime reales (solo visibles corriendo, no en tests):
+   `URLSearchParams.set` no existe en Hermes (`ResolveClient`) · override MF v2 no llegaba al `ScriptManager` (fix `registerRemotes` sobre la instancia global + routing de sub-chunks por caller + `excludeExtension`) · `@org/ui-kit` no era singleton MF → `useTheme` crasheaba.
+3. **Loader genérico** — `<MiniappHost id=… />` monta cualquier miniapp vía `loadRemote`, sin wiring por miniapp. Doc: `docs/mounting-miniapps.md`.
+4. **Login GitHub** (Auth.js v5) cableado + verificado (OAuth real).
+5. **Crear miniapps** — scaffolder configurado (allowlist + `GITHUB_TOKEN` + template marcado); creó `miniapp-hellow_widget` real + registro.
+6. **Publicar versión desde la UI** — form en la página de detalle, auth por sesión, manifest armado en el server. (backstage-web)
+7. **Storage de prod** — Upstash Redis (registry) + Vercel Blob (chunks). **Bug real fixed:** `@upstash/redis` auto-deserializaba (`automaticDeserialization:false`).
+8. **Integridad real** — sha256 (pura-JS en host, validado vs vectores NIST; node crypto en backstage). Reemplaza el no-op de ADR-008. Probado: chunk manipulado → mount bloqueado.
+9. **Deploy a Vercel** — env vars + deploy + smoke test; validación del camino de prod en device.
 
 ## Recent Technical Decisions
 - Bundler = Re.Pack (Module Federation v2), NOT Metro.
@@ -19,9 +30,12 @@
 - **Contrato = paquete publicado versionado `@org/miniapp-contract`** (fuente en repo móvil, publicado a npm privado; Backstage lo instala por versión). Único acoplamiento cross-repo.
 
 ## Known Issues / Blockers
-- ⚠️ `@module-federation/enhanced` fijado a **0.9.0** (no subir a 2.x con Re.Pack 5.2.5).
-- Verificación en dispositivo (Layer 2) pendiente hasta que haya flujo montable (Bolt 4).
-- A decidir por ADR en Construction: mecanismo de integridad/firma de chunk (Bolt 4), shape del registry store (Bolt 2).
+- ⚠️ `@module-federation/enhanced` fijado a **0.9.0** (no subir a 2.x con Re.Pack 5.2.5). **Sigue vigente.**
+- ⚠️ Para el build nativo usar **JAVA_HOME = OpenJDK 17 Homebrew** (NO Zulu). Fijar en `~/.gradle/gradle.properties` para no regresar.
+- ⚠️ La miniapp se sirve como **build estático** (`bundle:android` → `build/generated/android`), NO el dev server webpack-start (exige `?platform` y rompe la carga como remote). En prod = artefacto estático en Blob (mismo modelo).
+- ⚠️ Contrato aún vía `file:`/vendor (backstage) y `@org` placeholder → publicar a GitHub Packages como `@dentvega/*` (pendiente, esperando PAT `write:packages`).
+- ✅ RESUELTOS esta sesión: build nativo (JDK), Layer 2 on-device, integridad de chunk (sha256), registry store (Upstash), CDN de chunks (Blob), deploy (Vercel).
+- iOS: `pod install` probablemente desbloqueado (CocoaPods 1.16.2 presente) — no verificado en device iOS todavía.
 
 ## Intent 02 (miniapp-platform) — MVP COMPLETO (4/4 bolts) ✅
 - B1 Publicar paquetes (ui-kit→dist + publishConfig) ✓ · B2 Template GitHub (miniapp-template, remote compila) ✓ · B3 Migrar account-dashboard a repo propio (monorepo sin miniapps/*) ✓ · B4 Scaffolder Backstage (GitProvider + /api/scaffold + /create, 37 tests) ✓.
