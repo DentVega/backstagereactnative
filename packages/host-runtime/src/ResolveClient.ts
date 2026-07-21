@@ -1,4 +1,4 @@
-import type { ResolveRequest, ResolveResponse } from "@org/miniapp-contract";
+import type { ResolveRequest, ResolveResponse } from "@dentvega/miniapp-contract";
 
 /** Asks Backstage which version/url to mount. */
 export interface ResolveClient {

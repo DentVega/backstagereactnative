@@ -1,6 +1,6 @@
 import {ScriptManager, Script} from '@callstack/repack/client';
-import type {ChunkLoader, EntryComponent} from '@org/host-runtime';
-import type {ResolveResponse} from '@org/miniapp-contract';
+import type {ChunkLoader, EntryComponent} from '@dentvega/host-runtime';
+import type {ResolveResponse} from '@dentvega/miniapp-contract';
 
 /**
  * The Module Federation v2 runtime instance, reached through the global it

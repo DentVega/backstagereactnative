@@ -1,4 +1,4 @@
-import type {MiniappId} from '@org/miniapp-contract';
+import type {MiniappId} from '@dentvega/miniapp-contract';
 
 export type RootStackParamList = {
   Home: undefined;

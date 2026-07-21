@@ -1,4 +1,4 @@
-import type {Manifest, MiniappId, SemVer} from '@org/miniapp-contract';
+import type {Manifest, MiniappId, SemVer} from '@dentvega/miniapp-contract';
 import {initialLoaderState, nextLoaderState} from '../loaderState';
 import {evaluateManifest, type HostProvided} from '../evaluate';
 

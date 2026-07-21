@@ -107,10 +107,10 @@ export default Repack.defineRspackConfig({
         },
         // Provide the design-system/theming lib to the share scope so remotes use
         // the host's ThemeProvider/ThemeContext (stateful → must be a singleton).
-        '@org/ui-kit': {
+        '@dentvega/ui-kit': {
           singleton: true,
           eager: true,
-          version: pkgVersion('@org/ui-kit'),
+          version: pkgVersion('@dentvega/ui-kit'),
           requiredVersion: '^0.1.0',
         },
       },

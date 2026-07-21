@@ -1,5 +1,5 @@
 {
-  "name": "@org/ui-kit",
+  "name": "@dentvega/ui-kit",
   "version": "0.1.0",
   "description": "Themed RN primitives and design tokens (StyleSheet + tokens, ADR-001).",
   "license": "UNLICENSED",

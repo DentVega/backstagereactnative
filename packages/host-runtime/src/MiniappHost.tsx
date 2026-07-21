@@ -1,7 +1,7 @@
 import React from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
-import { AppText, Box, Button, useTheme } from "@org/ui-kit";
-import type { CapabilityGrant, MiniappId } from "@org/miniapp-contract";
+import { AppText, Box, Button, useTheme } from "@dentvega/ui-kit";
+import type { CapabilityGrant, MiniappId } from "@dentvega/miniapp-contract";
 import { useMiniapp } from "./useMiniapp";
 import type { ResolveClient } from "./ResolveClient";
 import type { ChunkLoader } from "./ChunkLoader";

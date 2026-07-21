@@ -1,13 +1,13 @@
 import React, {useMemo} from 'react';
 import {SafeAreaView} from 'react-native';
 import type {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {useTheme} from '@org/ui-kit';
+import {useTheme} from '@dentvega/ui-kit';
 import {
   MiniappHost,
   createScopedGrant,
   httpResolveClient,
   sha256Verifier,
-} from '@org/host-runtime';
+} from '@dentvega/host-runtime';
 import type {RootStackParamList} from '../navigation';
 import {useSession, deriveCapabilities} from '../session/store';
 import {repackChunkLoader} from '../chunkLoader';

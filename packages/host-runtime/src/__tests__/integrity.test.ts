@@ -1,6 +1,6 @@
 import { sha256Verifier } from "../integrity";
 import { sha256Hex } from "../sha256";
-import type { ResolveResponse } from "@org/miniapp-contract";
+import type { ResolveResponse } from "@dentvega/miniapp-contract";
 
 const bytes = new TextEncoder().encode("federated-chunk-bytes");
 const goodHash = `sha256-${sha256Hex(bytes)}`;

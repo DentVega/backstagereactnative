@@ -1,5 +1,5 @@
 import { useEffect, useReducer, useRef, useState } from "react";
-import type { MiniappId } from "@org/miniapp-contract";
+import type { MiniappId } from "@dentvega/miniapp-contract";
 import {
   initialLoaderState,
   nextLoaderState,

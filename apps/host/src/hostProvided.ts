@@ -1,5 +1,5 @@
-import type {HostProvided} from '@org/host-runtime';
-import type {SemVer} from '@org/miniapp-contract';
+import type {HostProvided} from '@dentvega/host-runtime';
+import type {SemVer} from '@dentvega/miniapp-contract';
 
 /**
  * Concrete singleton versions the host provides through the Module Federation

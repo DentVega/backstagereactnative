@@ -13,7 +13,7 @@ import React from 'react';
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
 import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import {ThemeProvider} from '@org/ui-kit';
+import {ThemeProvider} from '@dentvega/ui-kit';
 import type {RootStackParamList} from './src/navigation';
 import {HomeScreen} from './src/screens/HomeScreen';
 import {MiniappScreen} from './src/screens/MiniappScreen';

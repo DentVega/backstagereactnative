@@ -1,4 +1,4 @@
-import type { ResolveResponse } from "@org/miniapp-contract";
+import type { ResolveResponse } from "@dentvega/miniapp-contract";
 
 export type FallbackReason =
   | "resolve-failed"

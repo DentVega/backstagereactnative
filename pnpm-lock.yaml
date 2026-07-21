@@ -50,13 +50,13 @@ importers:
 
   apps/host:
     dependencies:
-      '@org/host-runtime':
+      '@dentvega/host-runtime':
         specifier: workspace:*
         version: link:../../packages/host-runtime
-      '@org/miniapp-contract':
+      '@dentvega/miniapp-contract':
         specifier: workspace:*
         version: link:../../packages/miniapp-contract
-      '@org/ui-kit':
+      '@dentvega/ui-kit':
         specifier: workspace:*
         version: link:../../packages/ui-kit
       '@react-navigation/native':
@@ -165,10 +165,10 @@ importers:
 
   packages/host-runtime:
     dependencies:
-      '@org/miniapp-contract':
+      '@dentvega/miniapp-contract':
         specifier: workspace:*
         version: link:../miniapp-contract
-      '@org/ui-kit':
+      '@dentvega/ui-kit':
         specifier: workspace:*
         version: link:../ui-kit
     devDependencies:
