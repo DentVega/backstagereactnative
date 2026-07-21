@@ -6,7 +6,7 @@
 - **Current Phase (2026-07-17): PRODUCCIÓN — plataforma live y validada end-to-end en dispositivo.** Backstage desplegado en Vercel (`backstage-web-blond.vercel.app`); registry en Upstash Redis; chunks en Vercel Blob (CDN); integridad sha256 real; el host resuelve+verifica+monta desde internet sin dependencia local.
 - **Bolts Completed:** 01 (4/4) · 02 (4/4) · 03 (4/4) · 04 (parcial + publish-UI hecho fuera de bolt). Además, en modo directo esta sesión se cerró TODA la deuda de Operations (build, storage, CDN, integridad, deploy).
 - **Verificado on-device** (emulador saliendo a internet como un teléfono real): resolve→Upstash→verify sha256→Blob CDN→mount. Ver `audit.md` (2026-07-13/17) y `operations/activation-checklist.md`.
-- **Único pendiente formal:** publicar `@dentvega/miniapp-contract` a GitHub Packages (esperando PAT `write:packages`). Follow-ons: Home dinámico del host, `@dentvega/ui-kit`.
+- **Roadmap de 5 pendientes: 5/5 HECHOS** (storage, integridad, home dinámico, contrato publicado, deploy). Abierto solo menor: firma de chunk (vs hash), iOS en device.
 
 ## Milestones Achieved
 - [x] Memory Bank and standards initialized
@@ -43,11 +43,14 @@
 - ✅ **CDN de chunks:** Vercel Blob (público, URLs deterministas), verificado sirviendo al device.
 - ✅ **Deploy:** live en Vercel.
 
+## Deuda técnica — RESUELTA (cont. 2026-07-21)
+- ✅ **Contrato publicado:** `@dentvega/miniapp-contract@0.1.0` + `@dentvega/ui-kit@0.1.0` en GitHub Packages. `@org`→`@dentvega` en los 4 repos; backstage-web consume el publicado (sin `vendor/`); Vercel build instala el contrato (token `read:packages`) y redesplegado. Elimina el drift web↔móvil.
+- ✅ **Home dinámico:** el host lista el catálogo (`GET /api/miniapps`) — cualquier miniapp registrada aparece sola; card por miniapp, deshabilitada sin versión publicada.
+
 ## Deuda técnica — abierta (menor)
-- **Contrato `@org` vía `file:`/vendor:** publicar `@dentvega/miniapp-contract` (y follow-on `@dentvega/ui-kit`) a GitHub Packages — pendiente PAT `write:packages`.
 - **Integridad = hash, no firma:** protege integridad, no autenticidad de origen (firma con clave = paso mayor futuro).
 - **iOS device:** `pod install` presumiblemente OK (CocoaPods 1.16.2) pero no verificado en iOS real.
-- **Home del host hardcodeado** a una miniapp — falta catálogo dinámico (`GET /api/miniapps` → lista).
+- **account-dashboard typecheck:** su `tsconfig.json` referencia un `tsconfig.base.json` del monorepo (ruta rota) — pre-existente; el build (`bundle:android`) funciona.
 - `@module-federation/enhanced` fijado a 0.9.0 (no subir con Re.Pack 5.2.5).
 
 ## Bolts (Execution Units) — intent 01-vertical-slice

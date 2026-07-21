@@ -6,7 +6,7 @@
 - **La plataforma está VIVA en producción y validada end-to-end en dispositivo.** El camino real está probado: el emulador (como un teléfono real, sin `adb reverse`) resuelve desde **Backstage en Vercel** → registry en **Upstash** → **verifica sha256** → baja el chunk de **Vercel Blob CDN** → **monta** la miniapp.
 - **Deploy live:** `https://backstage-web-blond.vercel.app` (Next.js 16 en Vercel).
 - **Lo logrado en la sesión 2026-07-13 → 07-17** (ver `## Sesión` abajo + `audit.md`): build nativo desbloqueado, primer mount on-device, loader genérico, login GitHub, crear miniapps, publicar versión desde la UI, storage de prod (Upstash + Blob), integridad sha256 real, deploy a Vercel.
-- **Único pendiente formal:** publicar el contrato `@org/miniapp-contract` → `@dentvega/miniapp-contract` a GitHub Packages (pausado esperando un PAT con `write:packages`). Follow-ons: Home dinámico del host; `@org/ui-kit` publicado.
+- **Roadmap de 5 pendientes: 5/5 completos** — storage (Upstash+Blob), integridad sha256, **Home dinámico** (el host lista el catálogo `GET /api/miniapps`), **contrato publicado** (`@dentvega/miniapp-contract` + `@dentvega/ui-kit` en GitHub Packages; los 4 repos migrados de `@org`; backstage-web sin `vendor/`; Vercel redesplegado con token `read:packages`), y deploy. Abierto solo menor (firma vs hash, iOS device).
 - Project goal: migrate an **Android bank app** to **React Native + Re.Pack**, and build a **"Spotify for Backstage" web platform** (Next.js) to create/version/distribute **miniapps** consumed by the mobile host as **federated remotes**.
 
 ## Sesión 2026-07-13 → 07-17 — de "compila" a producción
@@ -33,7 +33,7 @@
 - ⚠️ `@module-federation/enhanced` fijado a **0.9.0** (no subir a 2.x con Re.Pack 5.2.5). **Sigue vigente.**
 - ⚠️ Para el build nativo usar **JAVA_HOME = OpenJDK 17 Homebrew** (NO Zulu). Fijar en `~/.gradle/gradle.properties` para no regresar.
 - ⚠️ La miniapp se sirve como **build estático** (`bundle:android` → `build/generated/android`), NO el dev server webpack-start (exige `?platform` y rompe la carga como remote). En prod = artefacto estático en Blob (mismo modelo).
-- ⚠️ Contrato aún vía `file:`/vendor (backstage) y `@org` placeholder → publicar a GitHub Packages como `@dentvega/*` (pendiente, esperando PAT `write:packages`).
+- ✅ Contrato publicado como `@dentvega/miniapp-contract` + `@dentvega/ui-kit` en GitHub Packages; los 4 repos usan el scope `@dentvega`; backstage-web consume el publicado (sin `vendor/`). **Nota:** builds/instalación (local + Vercel) requieren `GITHUB_TOKEN` con `read:packages`.
 - ✅ RESUELTOS esta sesión: build nativo (JDK), Layer 2 on-device, integridad de chunk (sha256), registry store (Upstash), CDN de chunks (Blob), deploy (Vercel).
 - iOS: `pod install` probablemente desbloqueado (CocoaPods 1.16.2 presente) — no verificado en device iOS todavía.
 
