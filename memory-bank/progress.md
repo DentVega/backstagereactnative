@@ -52,9 +52,16 @@
 - ✅ **Fixes de CI reales:** (1) auth de GitHub Packages — `@dentvega/*` puestos **públicos** + token en `~/.npmrc` (pnpm ignora el `.npmrc` committeado); (2) zip **plano** de `build/generated/android/` (antes anidaba sub-chunks → 404 → no montaba).
 - ✅ Probado end-to-end: CI publica 0.7.0 → monta en emulador con datos.
 
+## Template drift + actualización de miniapps (2026-07-21) — Capa 1 + hello_widget live
+- **Capa 1 (workflow reutilizable):** el build+publish real vive en `miniapp-template/.github/workflows/publish.yml` (`workflow_call`); cada miniapp usa un `ci.yml` **caller delgado** (`uses: DentVega/miniapp-template/.github/workflows/publish.yml@main` + `secrets: inherit`). Arreglar `publish.yml` arregla **todas** las miniapps a la vez (siguen `@main`) — sin update por-repo. Combate el drift de template.
+- **Fix ui-kit singleton en el template:** `@dentvega/ui-kit` estaba `singleton: false` → toda miniapp scaffoldeada habría tenido el bug de `useTheme`. Ahora `singleton: true` (template + hello_widget).
+- **hello_widget actualizado y LIVE (0.1.2):** estaba doblemente roto (init-template nunca corrió → placeholders sin sustituir; usaba `@org/*`). Corregido: `id=hellow_widget`, `@org`→`@dentvega`, CI→caller, ui-kit singleton, `pnpm-lock.yaml` añadido (lo exige `cache: pnpm`). Publicado 0.1.2 vía CI; **resolve→CDN→integrity sha256→200** verificado.
+- **Gotcha CI:** `ci.yml` dispara con `push` **y** `workflow_dispatch`. El `push` del bump ya publica; un `gh workflow run`/botón Deploy manual sobre la misma versión da **409 VERSION_EXISTS** (redundante, no es fallo real). El run del `push` es el que cuenta.
+
 ## Deuda técnica — abierta (menor)
-- **Deploy — versión estática:** `manifest.json` fija la versión; repetir da "blob already exists". Futuro: auto-bump o `allowOverwrite` en el storage.
-- **Secrets por-repo:** cada miniapp necesita `BACKSTAGE_URL` + `PUBLISH_TOKEN` (DentVega = usuario, no org). Automatizar en el scaffolder.
+- **Redeploy = bump de versión:** `manifest.json` fija la versión y el registry es **inmutable** (409 en versión repetida, por contrato con tests). ✅ Blob ya idempotente (`allowOverwrite: true`). Para re-publicar hay que bumpear la versión (cada build = versión nueva). Futuro: auto-bump en CI o `allowOverwrite` opt-in en el registry (rompería tests de inmutabilidad → decisión pendiente).
+- **Botón Deploy vs versión estática:** el botón dispara `workflow_dispatch` sobre la versión actual → 409 si ya está publicada. Sirve solo tras un bump. Ligar al auto-bump.
+- **Secrets por-repo:** cada miniapp necesita `BACKSTAGE_URL` + `PUBLISH_TOKEN` (DentVega = usuario, no org). Automatizar en el scaffolder. El `PUBLISH_TOKEN` de prod hoy es débil (valor de dev promovido) → rotar a token fuerte en Vercel + los repos a la vez.
 - **Estado de CI en la UI (badge):** sigue "unknown" — scope OAuth `read:user` no lee Actions. Ampliar scope + `CI_STATUS_ENABLED=true`.
 - **Integridad = hash, no firma:** protege integridad, no autenticidad de origen (firma con clave = paso mayor futuro).
 - **iOS device:** `pod install` presumiblemente OK (CocoaPods 1.16.2) pero no verificado en iOS real.
