@@ -3,7 +3,7 @@ import {
   satisfiesShared,
   type Manifest,
   type SemVer,
-} from "@org/miniapp-contract";
+} from "@dentvega/miniapp-contract";
 import type { FallbackReason } from "./loaderState";
 
 /** Versions the host provides as singletons (name → concrete version). */

@@ -1,5 +1,5 @@
 import type { ComponentType } from "react";
-import type { MiniappEntryProps, ResolveResponse } from "@org/miniapp-contract";
+import type { MiniappEntryProps, ResolveResponse } from "@dentvega/miniapp-contract";
 
 export type EntryComponent = ComponentType<MiniappEntryProps>;
 

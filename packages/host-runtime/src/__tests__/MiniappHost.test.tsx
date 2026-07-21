@@ -1,14 +1,14 @@
 import React from 'react';
 import {Text} from 'react-native';
 import {render, screen} from '@testing-library/react-native';
-import {ThemeProvider} from '@org/ui-kit';
+import {ThemeProvider} from '@dentvega/ui-kit';
 import type {
   CapabilityGrant,
   Manifest,
   MiniappId,
   ResolveResponse,
   SemVer,
-} from '@org/miniapp-contract';
+} from '@dentvega/miniapp-contract';
 import {MiniappHost} from '../MiniappHost';
 import type {ResolveClient} from '../ResolveClient';
 import type {ChunkLoader, EntryComponent} from '../ChunkLoader';

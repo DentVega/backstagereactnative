@@ -1,4 +1,4 @@
-import type { ResolveResponse } from "@org/miniapp-contract";
+import type { ResolveResponse } from "@dentvega/miniapp-contract";
 import { sha256Hex } from "./sha256";
 
 /**

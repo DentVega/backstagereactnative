@@ -1,5 +1,5 @@
 {
-  "name": "@org/host-runtime",
+  "name": "@dentvega/host-runtime",
   "version": "0.1.0",
   "description": "Host-side miniapp loader (resolve → verify → mount → fallback). Portable logic + interfaces; concrete Re.Pack/MF adapters live in the host app.",
   "license": "UNLICENSED",
@@ -10,15 +10,15 @@
     "test": "jest"
   },
   "dependencies": {
-    "@org/miniapp-contract": "workspace:*",
-    "@org/ui-kit": "workspace:*"
+    "@dentvega/miniapp-contract": "workspace:*",
+    "@dentvega/ui-kit": "workspace:*"
   },
   "peerDependencies": {
     "react": "*",
     "react-native": "*"
   },
   "devDependencies": {
-    "@org/ui-kit": "workspace:*",
+    "@dentvega/ui-kit": "workspace:*",
     "@react-native/babel-preset": "0.76.6",
     "@testing-library/react-native": "catalog:",
     "@types/jest": "^29.5.14",

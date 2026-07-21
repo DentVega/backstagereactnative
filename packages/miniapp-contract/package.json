@@ -1,5 +1,5 @@
 {
-  "name": "@org/miniapp-contract",
+  "name": "@dentvega/miniapp-contract",
   "version": "0.1.0",
   "description": "Shared contract between the mobile host and the Backstage registry: manifest, resolve shape, capabilities, and version-skew logic.",
   "license": "UNLICENSED",

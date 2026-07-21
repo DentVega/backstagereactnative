@@ -5,7 +5,7 @@
 import React from 'react';
 import {render, screen, userEvent} from '@testing-library/react-native';
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
-import {ThemeProvider} from '@org/ui-kit';
+import {ThemeProvider} from '@dentvega/ui-kit';
 import {HomeScreen} from '../src/screens/HomeScreen';
 import {deriveCapabilities, useSession} from '../src/session/store';
 

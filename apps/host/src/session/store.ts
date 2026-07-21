@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type {Capability} from '@org/miniapp-contract';
+import type {Capability} from '@dentvega/miniapp-contract';
 
 export interface SessionState {
   userId: string | null;

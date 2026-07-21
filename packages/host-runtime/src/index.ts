@@ -27,7 +27,7 @@ export type { MiniappHostProps } from "./MiniappHost";
 export { MiniappHost } from "./MiniappHost";
 
 // --- Capability grant helper (host owns the scoped, revocable grant) ---
-import type { Capability, CapabilityGrant } from "@org/miniapp-contract";
+import type { Capability, CapabilityGrant } from "@dentvega/miniapp-contract";
 
 export interface ScopedGrant {
   readonly grant: CapabilityGrant;
