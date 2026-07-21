@@ -47,7 +47,15 @@
 - ✅ **Contrato publicado:** `@dentvega/miniapp-contract@0.1.0` + `@dentvega/ui-kit@0.1.0` en GitHub Packages. `@org`→`@dentvega` en los 4 repos; backstage-web consume el publicado (sin `vendor/`); Vercel build instala el contrato (token `read:packages`) y redesplegado. Elimina el drift web↔móvil.
 - ✅ **Home dinámico:** el host lista el catálogo (`GET /api/miniapps`) — cualquier miniapp registrada aparece sola; card por miniapp, deshabilitada sin versión publicada.
 
+## Extra (2026-07-21) — Botón "Deploy" (1 click → CI)
+- ✅ Botón **"Deploy"** en la página de detalle de Backstage → dispara el `ci.yml` (`workflow_dispatch`) de la miniapp → build + publish. `POST /api/miniapps/:id/deploy` (auth sesión) + `GitProvider.dispatchWorkflow`.
+- ✅ **Fixes de CI reales:** (1) auth de GitHub Packages — `@dentvega/*` puestos **públicos** + token en `~/.npmrc` (pnpm ignora el `.npmrc` committeado); (2) zip **plano** de `build/generated/android/` (antes anidaba sub-chunks → 404 → no montaba).
+- ✅ Probado end-to-end: CI publica 0.7.0 → monta en emulador con datos.
+
 ## Deuda técnica — abierta (menor)
+- **Deploy — versión estática:** `manifest.json` fija la versión; repetir da "blob already exists". Futuro: auto-bump o `allowOverwrite` en el storage.
+- **Secrets por-repo:** cada miniapp necesita `BACKSTAGE_URL` + `PUBLISH_TOKEN` (DentVega = usuario, no org). Automatizar en el scaffolder.
+- **Estado de CI en la UI (badge):** sigue "unknown" — scope OAuth `read:user` no lee Actions. Ampliar scope + `CI_STATUS_ENABLED=true`.
 - **Integridad = hash, no firma:** protege integridad, no autenticidad de origen (firma con clave = paso mayor futuro).
 - **iOS device:** `pod install` presumiblemente OK (CocoaPods 1.16.2) pero no verificado en iOS real.
 - **account-dashboard typecheck:** su `tsconfig.json` referencia un `tsconfig.base.json` del monorepo (ruta rota) — pre-existente; el build (`bundle:android`) funciona.
