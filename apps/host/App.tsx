@@ -17,6 +17,7 @@ import {ThemeProvider} from '@dentvega/ui-kit';
 import type {RootStackParamList} from './src/navigation';
 import {HomeScreen} from './src/screens/HomeScreen';
 import {MiniappScreen} from './src/screens/MiniappScreen';
+import {DevMountScreen} from './src/dev/DevMountScreen';
 
 const queryClient = new QueryClient();
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -37,6 +38,13 @@ function App(): React.JSX.Element {
               component={MiniappScreen}
               options={({route}) => ({title: route.params.title})}
             />
+            {__DEV__ ? (
+              <Stack.Screen
+                name="DevMount"
+                component={DevMountScreen}
+                options={{title: 'Dev Mount'}}
+              />
+            ) : null}
           </Stack.Navigator>
         </NavigationContainer>
       </ThemeProvider>

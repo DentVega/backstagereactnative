@@ -76,6 +76,13 @@ export function HomeScreen({navigation}: Props): React.JSX.Element {
       </Card>
 
       <AppText variant="title">Miniapps</AppText>
+
+      {__DEV__ ? (
+        <Button
+          label="▶ Dev Mount (local miniapp)"
+          onPress={() => navigation.navigate('DevMount')}
+        />
+      ) : null}
     </Box>
   );
 
