@@ -26,3 +26,7 @@ apps/host/.rspack/
 
 # Vendored skills (reinstalables con /setup-skills)
 .claude/skills/
+
+# local env / secrets (never commit)
+.env*
+!.env.example
