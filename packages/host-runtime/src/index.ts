@@ -15,6 +15,8 @@ export { sha256Hex } from "./sha256";
 export type { ResolveClient } from "./ResolveClient";
 export { httpResolveClient } from "./ResolveClient";
 
+export { parseDevRemotes, devResolveClient, isDevRemote } from "./devResolveClient";
+
 export type { CatalogClient, MiniappSummary } from "./CatalogClient";
 export { httpCatalogClient } from "./CatalogClient";
 
