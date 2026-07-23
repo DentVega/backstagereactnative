@@ -73,6 +73,13 @@
 - ✅ **CI propio en backstage-web (#5):** `.github/workflows/ci.yml` corre `tsc --noEmit` + `vitest run` (Node 24, pnpm) en PR + push a main. Run verificado `success`. Antes no había nada corriendo los 135 tests en PR.
 - Construido con brainstorm→spec→plan→subagent-driven (spec/plan en `backstage-web/docs/superpowers/{specs,plans}/2026-07-23-*` y `2026-07-22-*`).
 
+## Adopción / distribución (2026-07-23) — bootstrap + template repos — DONE
+- **Objetivo:** que una empresa nueva levante toda la plataforma copiándola vía **GitHub template repos** + un rename de scope/owner en un comando.
+- ✅ **`scripts/bootstrap.mjs`** (idéntico en los 3 repos, zero-dep): `node scripts/bootstrap.mjs --scope @acme --owner Acme [--yes]`. Reemplaza `@dentvega`→scope, `DentVega`→owner, `dentvega`→login en json/ts/tsx/mjs/yml/md/.npmrc (excluye lockfiles + sus propios archivos). **Dry-run por defecto**, `--yes` escribe. Lógica pura en `bootstrap-lib.mjs` + `node:test` (10/10).
+- ✅ **Origin-guard:** se niega a escribir si el remote origin apunta a `DentVega/*` (salvo `--force`) → **no puede romper nuestros repos vivos** (probado: `--yes` bloqueado en backstage-web). Diseño **aditivo** — los repos siguen literales `@dentvega`.
+- ✅ Los **3 repos marcados como Template repository** (`isTemplate=true`). `.gitignore` del host endurecido (`.env*`). `SETUP.md §3.1` actualizado a "corré bootstrap".
+- **Seguridad verificada antes de shippear:** repos ya públicos (templatear no es exposición nueva), **cero secretos committeados**, historial git limpio (0 leaks). Construido con brainstorm→spec→plan→subagent (`backstage-web/docs/superpowers/*/2026-07-23-bootstrap-*`).
+
 ## Deuda técnica — abierta (menor)
 - ✅ **Secrets por-repo — AUTOMATIZADO (2026-07-21):** el scaffolder ahora siembra `BACKSTAGE_URL` + `PUBLISH_TOKEN` en cada repo nuevo (`GitProvider.setSecret`, libsodium sealed-box, best-effort). Valores desde el env de Backstage vía `scaffoldSecrets()`. **Requiere setear `BACKSTAGE_URL` en Vercel prod** (= URL de Backstage; `PUBLISH_TOKEN` ya está). Crypto verificado bajo node (201); libsodium no corre bajo vitest → unit tests cubren la orquestación. Pendiente menor: `PUBLISH_TOKEN` de prod sigue siendo débil (`dev-*`) → rotar a token fuerte en Vercel + repos a la vez.
 - **Scaffolder auto-setea el permiso de PRs de Actions** (`enableActionsPullRequests`, best-effort) → repos nuevos listos para template-sync sin paso manual. Junto con el auto-seed de secrets, el onboarding de una miniapp nueva es 100% automático.
