@@ -65,6 +65,9 @@ yarn-error.log
 # testing
 /coverage
 
+# generated: apps/host/scripts/gen-host-contract.mjs
+host-contract.json
+
 # Yarn
 .yarn/*
 !.yarn/patches
