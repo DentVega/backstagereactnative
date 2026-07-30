@@ -60,3 +60,26 @@ describe("satisfiesShared", () => {
     expect(result.entries[0]?.providedVersion).toBe("17.0.2");
   });
 });
+
+describe("satisfiesShared — semver real", () => {
+  const shared = (range: string) => [{ name: "react-native", requiredRange: range, singleton: true }];
+
+  it("resuelve rangos con operadores compuestos (>=x <y)", () => {
+    const r = satisfiesShared({ "react-native": "0.76.6" } as never, shared(">=0.76.0 <0.77.0") as never);
+    expect(r.compatible).toBe(true);
+  });
+  it("resuelve OR (||)", () => {
+    const r = satisfiesShared({ "react-native": "0.76.6" } as never, shared("0.75.x || 0.76.x") as never);
+    expect(r.compatible).toBe(true);
+  });
+  it("resuelve x-ranges (0.76.x)", () => {
+    const ok = satisfiesShared({ "react-native": "0.76.6" } as never, shared("0.76.x") as never);
+    const no = satisfiesShared({ "react-native": "0.77.0" } as never, shared("0.76.x") as never);
+    expect(ok.compatible).toBe(true);
+    expect(no.compatible).toBe(false);
+  });
+  it("mantiene el caso caret 0.x (^0.76.6 excluye 0.77)", () => {
+    expect(satisfiesShared({ "react-native": "0.77.0" } as never, shared("^0.76.6") as never).compatible).toBe(false);
+    expect(satisfiesShared({ "react-native": "0.76.9" } as never, shared("^0.76.6") as never).compatible).toBe(true);
+  });
+});

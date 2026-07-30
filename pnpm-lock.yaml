@@ -204,10 +204,17 @@ importers:
         version: 5.9.3
 
   packages/miniapp-contract:
+    dependencies:
+      semver:
+        specifier: ^7.6.0
+        version: 7.8.5
     devDependencies:
       '@types/jest':
         specifier: ^29.5.14
         version: 29.5.14
+      '@types/semver':
+        specifier: ^7.5.0
+        version: 7.5.8
       jest:
         specifier: 'catalog:'
         version: 29.7.0(@types/node@26.1.1)

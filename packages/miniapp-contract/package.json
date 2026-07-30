@@ -24,10 +24,14 @@
     "test": "jest",
     "prepack": "pnpm build"
   },
+  "dependencies": {
+    "semver": "^7.6.0"
+  },
   "devDependencies": {
     "typescript": "catalog:",
     "jest": "catalog:",
     "ts-jest": "^29.2.5",
-    "@types/jest": "^29.5.14"
+    "@types/jest": "^29.5.14",
+    "@types/semver": "^7.5.0"
   }
 }

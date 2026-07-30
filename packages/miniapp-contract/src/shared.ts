@@ -1,12 +1,14 @@
 /**
  * Version-skew detection for shared singletons.
- * Pure, no runtime deps. Reused by the host loader (Bolt 4) AND by Backstage
- * to validate compatibility at publish time.
+ * Reused by the host loader (Bolt 4) AND by Backstage to validate
+ * compatibility at publish time.
  *
- * NOTE: this is a *minimal* range satisfier (exact | caret ^ | tilde ~ | any *).
- * It is intentionally small for the MVP; swap for a full semver lib if ranges
- * grow more complex.
+ * `satisfiesShared` resolves real semver ranges (compound `>=x <y`, `||`,
+ * x-ranges, etc.) via the `semver` package. `satisfiesRange` below is a
+ * *minimal* range satisfier (exact | caret ^ | tilde ~ | any *) kept
+ * exported for the (cheaper, approximate) drift badge.
  */
+import semver from "semver";
 import type { SemVer, SharedDepSpec } from "./types.js";
 
 export type SkewStatus = "ok" | "missing" | "incompatible";
@@ -73,9 +75,8 @@ export function satisfiesShared(
     if (providedVersion === undefined) {
       return { name: dep.name, status: "missing", requiredRange: dep.requiredRange };
     }
-    const status: SkewStatus = satisfiesRange(providedVersion, dep.requiredRange)
-      ? "ok"
-      : "incompatible";
+    const inRange = semver.satisfies(providedVersion, dep.requiredRange, { includePrerelease: false });
+    const status: SkewStatus = inRange ? "ok" : "incompatible";
     return { name: dep.name, status, requiredRange: dep.requiredRange, providedVersion };
   });
 
