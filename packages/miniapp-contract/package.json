@@ -1,6 +1,6 @@
 {
   "name": "@dentvega/miniapp-contract",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Shared contract between the mobile host and the Backstage registry: manifest, resolve shape, capabilities, and version-skew logic.",
   "license": "UNLICENSED",
   "type": "module",
@@ -13,7 +13,9 @@
       "default": "./dist/index.js"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "publishConfig": {
     "registry": "https://npm.pkg.github.com",
     "access": "restricted"
