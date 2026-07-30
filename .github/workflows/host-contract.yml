@@ -3,7 +3,9 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ['apps/host/shared-deps.mjs', 'apps/host/package.json']
+    # pnpm-lock.yaml (repo root): the contract's versions come from resolved installs,
+    # so a lockfile-only dep bump must also re-publish.
+    paths: ['apps/host/shared-deps.mjs', 'apps/host/package.json', 'pnpm-lock.yaml']
 jobs:
   publish:
     runs-on: ubuntu-latest
