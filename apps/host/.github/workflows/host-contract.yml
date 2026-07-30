@@ -1,0 +1,21 @@
+name: Publish host contract
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['apps/host/shared-deps.mjs', 'apps/host/package.json']
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: apps/host } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24 }
+      - run: corepack enable && pnpm install --frozen-lockfile
+        working-directory: .
+      - run: node scripts/gen-host-contract.mjs
+      - run: node scripts/publish-host-contract.mjs
+        env:
+          BACKSTAGE_URL: ${{ secrets.BACKSTAGE_URL }}
+          HOST_CONTRACT_TOKEN: ${{ secrets.HOST_CONTRACT_TOKEN }}
