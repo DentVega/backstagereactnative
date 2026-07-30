@@ -35,6 +35,20 @@ describe("isManifest", () => {
     expect(isManifest({ ...valid, integrity: "sha256-abc" })).toBe(true);
   });
 
+  it("accepts a manifest with a valid minHostContract", () => {
+    expect(
+      isManifest({ ...valid, minHostContract: { reactNative: "0.76.6", contractVersion: "1.0.0" } })
+    ).toBe(true);
+  });
+
+  it("accepts a manifest without minHostContract (optional)", () => {
+    expect(isManifest(valid)).toBe(true);
+  });
+
+  it("rejects a manifest with a malformed minHostContract", () => {
+    expect(isManifest({ ...valid, minHostContract: { reactNative: 1 } })).toBe(false);
+  });
+
   it.each([
     ["null", null],
     ["missing version", { ...valid, version: undefined }],

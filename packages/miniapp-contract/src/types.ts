@@ -47,6 +47,8 @@ export interface Manifest {
    * content is not validated.
    */
   readonly integrity?: string;
+  /** Minimum host contract this manifest was built against (compat with older hosts). */
+  readonly minHostContract?: { readonly reactNative: string; readonly contractVersion: string };
 }
 
 /** Host → Backstage resolve request. */
@@ -67,4 +69,16 @@ export interface ResolveResponse {
 /** Props the host injects into a miniapp's exposed `./Entry` component. */
 export interface MiniappEntryProps {
   readonly capabilities: CapabilityGrant;
+}
+
+/** The Host Platform Contract: what the host provides (source of truth for compat). */
+export interface HostContract {
+  /** SemVer that bumps when the platform contract changes. */
+  contractVersion: string;
+  /** react-native version of the host. */
+  reactNative: string;
+  /** Singletons the host provides: name → concrete version. */
+  shared: Readonly<Record<string, string>>;
+  /** Native modules without a JS API compiled into the binary (presence only). */
+  nativeModules: readonly string[];
 }

@@ -1,5 +1,5 @@
 /** Pure validation / parsing for the contract. Unit-tested in Bolt 1. */
-import type { Capability, Manifest, MiniappId, SemVer, SharedDepSpec } from "./types.js";
+import type { Capability, HostContract, Manifest, MiniappId, SemVer, SharedDepSpec } from "./types.js";
 
 const SEMVER_RE = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/;
 const MINIAPP_ID_RE = /^[a-z0-9]+(?:[-_][a-z0-9]+)*$/;
@@ -44,5 +44,35 @@ export function isManifest(x: unknown): x is Manifest {
   if (!Array.isArray(o.capabilities) || !o.capabilities.every(isCapability)) return false;
   if (o.integrity !== undefined && typeof o.integrity !== "string") return false;
 
+  if (o.minHostContract !== undefined) {
+    const mh = o.minHostContract as Record<string, unknown>;
+    if (
+      typeof mh !== "object" ||
+      mh === null ||
+      typeof mh.reactNative !== "string" ||
+      typeof mh.contractVersion !== "string"
+    ) {
+      return false;
+    }
+  }
+
   return true;
+}
+
+/** Structural type guard for a HostContract coming from an untrusted source. */
+export function isHostContract(v: unknown): v is HostContract {
+  if (typeof v !== "object" || v === null) return false;
+  const c = v as Record<string, unknown>;
+  if (
+    typeof c.contractVersion !== "string" ||
+    typeof c.reactNative !== "string" ||
+    typeof c.shared !== "object" ||
+    c.shared === null ||
+    Array.isArray(c.shared) ||
+    !Array.isArray(c.nativeModules) ||
+    !c.nativeModules.every((n) => typeof n === "string")
+  ) {
+    return false;
+  }
+  return Object.values(c.shared as Record<string, unknown>).every((x) => typeof x === "string");
 }
