@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 import * as Repack from '@callstack/repack';
 import rspack from '@rspack/core';
+import { SHARED_DEPS, buildMfShared } from './shared-deps.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -94,48 +95,7 @@ export default Repack.defineRspackConfig({
       // without it, non-eager shared deps trigger `loadShareSync` (fatal) or get
       // split into async chunks that race AppRegistry.registerComponent. The
       // remote `account_dashboard` still consumes them from the shared scope.
-      shared: {
-        react: {singleton: true, eager: true, requiredVersion: '18.3.1'},
-        'react-native': {singleton: true, eager: true, requiredVersion: '0.76.6'},
-        '@tanstack/react-query': {
-          singleton: true,
-          eager: true,
-          version: pkgVersion('@tanstack/react-query'),
-          requiredVersion: '^5.0.0',
-        },
-        '@shopify/flash-list': {
-          singleton: true,
-          eager: true,
-          version: pkgVersion('@shopify/flash-list'),
-          requiredVersion: '^1.7.0',
-        },
-        zustand: {
-          singleton: true,
-          eager: true,
-          version: pkgVersion('zustand'),
-          requiredVersion: '^5.0.0',
-        },
-        '@react-navigation/native': {
-          singleton: true,
-          eager: true,
-          version: pkgVersion('@react-navigation/native'),
-          requiredVersion: '^7.0.0',
-        },
-        '@react-navigation/native-stack': {
-          singleton: true,
-          eager: true,
-          version: pkgVersion('@react-navigation/native-stack'),
-          requiredVersion: '^7.0.0',
-        },
-        // Provide the design-system/theming lib to the share scope so remotes use
-        // the host's ThemeProvider/ThemeContext (stateful → must be a singleton).
-        '@dentvega/ui-kit': {
-          singleton: true,
-          eager: true,
-          version: pkgVersion('@dentvega/ui-kit'),
-          requiredVersion: '^0.1.0',
-        },
-      },
+      shared: buildMfShared(SHARED_DEPS, pkgVersion),
     }),
   ],
 });

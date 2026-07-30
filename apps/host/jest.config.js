@@ -5,4 +5,5 @@ module.exports = {
   transformIgnorePatterns: [
     'node_modules/\\.pnpm/(?!(?:react-native|react-native-|@react-native\\+|@react-native-community\\+|@react-navigation\\+|@testing-library\\+))',
   ],
+  testPathIgnorePatterns: ['/node_modules/', '/scripts/'],
 };
