@@ -16,5 +16,5 @@ export { parseSemVer, parseMiniappId, isManifest, isHostContract } from "./guard
 export type { SkewStatus, SkewEntry, SkewResult } from "./shared.js";
 export { satisfiesRange, satisfiesShared } from "./shared.js";
 
-export type { NativeCheckResult } from "./compat.js";
-export { checkNativeModules } from "./compat.js";
+export type { NativeCheckResult, CompatReport } from "./compat.js";
+export { checkNativeModules, checkCompatibility } from "./compat.js";

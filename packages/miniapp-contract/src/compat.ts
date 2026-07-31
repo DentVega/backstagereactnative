@@ -24,3 +24,28 @@ export function checkNativeModules(
   const missing = miniappNativeModules.filter((m) => !host.has(m));
   return { compatible: missing.length === 0, missing };
 }
+
+export interface CompatReport {
+  readonly compatible: boolean;
+  readonly skew: SkewResult;
+  readonly native: NativeCheckResult;
+}
+
+/**
+ * Full compatibility of a miniapp against a host contract: shared-version skew
+ * (semver) AND native-module presence. Compatible only when both hold.
+ */
+export function checkCompatibility(
+  contract: HostContract,
+  miniappShared: readonly SharedDepSpec[],
+  miniappNativeModules: readonly string[],
+): CompatReport {
+  // `contract.shared` is Record<string,string>; satisfiesShared wants the branded
+  // SemVer form — the brand is compile-time only, so this cast has no runtime effect.
+  const skew = satisfiesShared(
+    contract.shared as Readonly<Record<string, SemVer>>,
+    miniappShared,
+  );
+  const native = checkNativeModules(contract.nativeModules, miniappNativeModules);
+  return { compatible: skew.compatible && native.compatible, skew, native };
+}
