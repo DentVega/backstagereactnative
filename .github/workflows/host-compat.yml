@@ -1,0 +1,20 @@
+name: Host compat gate (blast-radius)
+on:
+  pull_request:
+    paths: ['apps/host/package.json', 'apps/host/shared-deps.mjs', 'pnpm-lock.yaml']
+jobs:
+  blast-radius:
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: apps/host } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24 }
+      - run: corepack enable && pnpm install --frozen-lockfile
+        working-directory: .
+      - run: pnpm --filter @dentvega/miniapp-contract build   # dist para el import del script
+        working-directory: .
+      - run: node scripts/check-host-compat.mjs
+        env:
+          BACKSTAGE_URL: ${{ secrets.BACKSTAGE_URL }}
+          ACCEPT_BREAKING: ${{ contains(github.event.pull_request.labels.*.name, 'accept-breaking-contract') }}
