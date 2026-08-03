@@ -18,6 +18,32 @@
  */
 export const CONTRACT_VERSION = "0.1.0";
 
+/**
+ * Procedencia de capabilities: en qué contractVersion se INTRODUJO cada singleton
+ * y cada módulo nativo. Fuente para auto-derivar minHostContract PRECISO en las
+ * miniapps (el mínimo host que provee lo que la miniapp usa). Al agregar una
+ * capability (bump minor de CONTRACT_VERSION, política #3), registrala acá con ese
+ * contractVersion. gen-host-contract falla si falta alguna (fail-loud).
+ */
+export const CAPABILITY_SINCE = {
+  shared: {
+    react: "0.1.0",
+    "react-native": "0.1.0",
+    "@tanstack/react-query": "0.1.0",
+    "@shopify/flash-list": "0.1.0",
+    zustand: "0.1.0",
+    "@react-navigation/native": "0.1.0",
+    "@react-navigation/native-stack": "0.1.0",
+    "@dentvega/ui-kit": "0.1.0",
+  },
+  native: {
+    "@shopify/flash-list": "0.1.0",
+    "react-native-safe-area-context": "0.1.0",
+    "react-native-screens": "0.1.0",
+    "@callstack/repack": "0.1.0",
+  },
+};
+
 export const SHARED_DEPS = [
   { name: "react", requiredVersion: "18.3.1" },
   { name: "react-native", requiredVersion: "0.76.6" },
