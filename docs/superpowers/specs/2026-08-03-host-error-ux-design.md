@@ -128,5 +128,9 @@ Usuario toca Reintentar → onRetry ?? reload → reload bumpea attempt → effe
 ## 7. Fuera de alcance (YAGNI)
 - Backoff exponencial / N>1 auto-retries más allá del prop configurable.
 - Detección de offline / escuchar reconexión de red.
-- Cachear la última versión buena para servir mientras reintenta.
+- **Cache en el host (manifest resuelto + chunk descargado)** — SIGUIENTE PASO. Los retries
+  son lecturas, pero cada resolve/download cuenta como **operación** contra la cuota del
+  CDN (lo que suspendió a Blob). El auto-retry está acotado a **+1 op** en falla
+  (`maxAuto=1`), así que la amplificación es chica; el fix de fondo (reducir ops en
+  general y abaratar retries) es un cache host-side. Fuera de este esfuerzo.
 - Telemetría / reporte de errores a un backend.
