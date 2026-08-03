@@ -8,7 +8,7 @@ import { writeFileSync } from "node:fs";
 import { execSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
-import { SHARED_DEPS, CONTRACT_VERSION } from "../shared-deps.mjs";
+import { SHARED_DEPS, CONTRACT_VERSION, CAPABILITY_SINCE } from "../shared-deps.mjs";
 
 const require = createRequire(import.meta.url);
 const pkgVersion = (name) => require(`${name}/package.json`).version;
@@ -17,7 +17,7 @@ const pkgVersion = (name) => require(`${name}/package.json`).version;
 export function buildHostContract(
   deps,
   resolveVersion,
-  { contractVersion, nativeModules = [], generatedAt, hostCommit },
+  { contractVersion, nativeModules = [], generatedAt, hostCommit, capabilitySince },
 ) {
   const shared = {};
   for (const d of deps) shared[d.name] = resolveVersion(d.name);
@@ -26,9 +26,19 @@ export function buildHostContract(
     reactNative: resolveVersion("react-native"),
     shared,
     nativeModules,
+    ...(capabilitySince !== undefined ? { capabilitySince } : {}),
     ...(generatedAt !== undefined ? { generatedAt } : {}),
     ...(hostCommit !== undefined ? { hostCommit } : {}),
   };
+}
+
+/** Capabilities (shared+native) sin entrada en capabilitySince. Vacío = completo. */
+export function missingProvenance(sharedNames, nativeNames, capabilitySince) {
+  const cs = capabilitySince ?? { shared: {}, native: {} };
+  const miss = [];
+  for (const n of sharedNames) if (!(n in cs.shared)) miss.push(`shared:${n}`);
+  for (const n of nativeNames) if (!(n in cs.native)) miss.push(`native:${n}`);
+  return miss;
 }
 
 /**
@@ -91,6 +101,15 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.a
     console.error(String(err?.message ?? err));
     process.exit(1);
   }
+  // Fail-loud: toda capability (shared + native) debe tener procedencia en CAPABILITY_SINCE.
+  const missing = missingProvenance(SHARED_DEPS.map((d) => d.name), nativeModules, CAPABILITY_SINCE);
+  if (missing.length > 0) {
+    console.error(
+      `gen-host-contract: capabilities sin procedencia en CAPABILITY_SINCE: ${missing.join(", ")}. ` +
+        `Agregá su contractVersion en shared-deps.mjs (bump minor).`,
+    );
+    process.exit(1);
+  }
   // Procedencia: cuándo y de qué commit del host se generó (diagnóstico de drift).
   const generatedAt = new Date().toISOString();
   let hostCommit = "unknown";
@@ -102,6 +121,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.a
   const contract = buildHostContract(SHARED_DEPS, pkgVersion, {
     contractVersion,
     nativeModules,
+    capabilitySince: CAPABILITY_SINCE,
     generatedAt,
     hostCommit,
   });

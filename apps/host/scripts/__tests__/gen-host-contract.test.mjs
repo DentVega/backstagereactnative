@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { buildHostContract, parseAutolinkedNatives, requireNativeModules } from "../gen-host-contract.mjs";
+import { buildHostContract, parseAutolinkedNatives, requireNativeModules, missingProvenance } from "../gen-host-contract.mjs";
 import { SHARED_DEPS } from "../../shared-deps.mjs";
 import { isHostContract } from "@dentvega/miniapp-contract";
 
@@ -71,4 +71,21 @@ test("buildHostContract omite procedencia si no se pasa (backward-compat)", () =
   const c = buildHostContract(SHARED_DEPS, fakePkg, { contractVersion: "1.0.0" });
   assert.equal("generatedAt" in c, false);
   assert.equal("hostCommit" in c, false);
+});
+
+const SINCE = { shared: { react: "0.1.0" }, native: { "react-native-screens": "0.1.0" } };
+
+test("missingProvenance: completo → []", () => {
+  assert.deepEqual(missingProvenance(["react"], ["react-native-screens"], SINCE), []);
+});
+
+test("missingProvenance: detecta faltantes shared/native", () => {
+  const m = missingProvenance(["react", "zustand"], ["react-native-mmkv"], SINCE);
+  assert.deepEqual(m.sort(), ["native:react-native-mmkv", "shared:zustand"]);
+});
+
+test("buildHostContract incluye capabilitySince cuando se pasa", () => {
+  const c = buildHostContract(SHARED_DEPS, fakePkg, { contractVersion: "1.0.0", capabilitySince: SINCE });
+  assert.deepEqual(c.capabilitySince, SINCE);
+  assert.equal(isHostContract(c), true);
 });
