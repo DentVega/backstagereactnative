@@ -7,7 +7,7 @@ import type { ResolveClient } from "./ResolveClient";
 import type { ChunkLoader } from "./ChunkLoader";
 import type { HostProvided } from "./evaluate";
 import type { IntegrityVerifier } from "./integrity";
-import type { FallbackReason } from "./loaderState";
+import { isRetryable, type FallbackReason } from "./loaderState";
 
 export interface MiniappHostProps {
   id: MiniappId;
@@ -17,27 +17,30 @@ export interface MiniappHostProps {
   capabilities: CapabilityGrant;
   integrity?: IntegrityVerifier;
   onRetry?: () => void;
+  retry?: { maxAuto?: number; backoffMs?: number };
 }
 
 const FALLBACK_COPY: Record<FallbackReason, string> = {
   "resolve-failed": "No pudimos localizar esta miniapp.",
   "download-failed": "No pudimos descargar esta miniapp.",
   "invalid-manifest": "La miniapp tiene un manifiesto inválido.",
-  skew: "Esta miniapp no es compatible con esta versión de la app.",
+  skew: "Esta miniapp no es compatible con esta versión de la app. Actualizá la app para usarla.",
   "integrity-failed": "No pudimos verificar la integridad de la miniapp.",
 };
 
 export function MiniappHost(props: MiniappHostProps): React.JSX.Element {
   const theme = useTheme();
-  const { state, Entry } = useMiniapp({
+  const { state, Entry, reload, retrying } = useMiniapp({
     id: props.id,
     resolveClient: props.resolveClient,
     chunkLoader: props.chunkLoader,
     hostProvided: props.hostProvided,
     integrity: props.integrity,
+    retry: props.retry,
   });
 
   if (state.status === "fallback") {
+    const canRetry = isRetryable(state.reason);
     return (
       <Box padding="xl" gap="sm" style={styles.center}>
         <AppText variant="title" color="danger" accessibilityRole="header">
@@ -46,8 +49,8 @@ export function MiniappHost(props: MiniappHostProps): React.JSX.Element {
         <AppText variant="body" color="textMuted">
           {FALLBACK_COPY[state.reason]}
         </AppText>
-        {props.onRetry !== undefined ? (
-          <Button label="Reintentar" onPress={props.onRetry} />
+        {canRetry ? (
+          <Button label="Reintentar" onPress={props.onRetry ?? reload} />
         ) : null}
       </Box>
     );
@@ -64,6 +67,11 @@ export function MiniappHost(props: MiniappHostProps): React.JSX.Element {
       style={[styles.center, { backgroundColor: theme.colors.background }]}
     >
       <ActivityIndicator color={theme.colors.primary} />
+      {retrying ? (
+        <AppText variant="body" color="textMuted">
+          Reintentando…
+        </AppText>
+      ) : null}
     </View>
   );
 }

@@ -1,6 +1,6 @@
 import React from 'react';
 import {Text} from 'react-native';
-import {render, screen} from '@testing-library/react-native';
+import {fireEvent, render, screen} from '@testing-library/react-native';
 import {ThemeProvider} from '@dentvega/ui-kit';
 import type {
   CapabilityGrant,
@@ -113,5 +113,61 @@ describe('MiniappHost', () => {
     };
     renderHost(mockResolve(resolvedWith(manifest(compatibleShared))), failingLoader);
     expect(await screen.findByText(/No pudimos descargar/)).toBeOnTheScreen();
+  });
+});
+
+/** Falla las primeras `failures` llamadas a resolve, después devuelve `resp`. */
+function flakyResolve(failures: number, resp: ResolveResponse): ResolveClient {
+  let n = 0;
+  return {
+    resolve: async () => {
+      if (n++ < failures) throw new Error('resolve failed: transient');
+      return resp;
+    },
+  };
+}
+
+function renderRetry(client: ResolveClient, loader: ChunkLoader = mockChunk) {
+  render(
+    <ThemeProvider scheme="light">
+      <MiniappHost
+        id={ID}
+        resolveClient={client}
+        chunkLoader={loader}
+        hostProvided={hostProvided}
+        capabilities={grant}
+        retry={{backoffMs: 0}}
+      />
+    </ThemeProvider>,
+  );
+}
+
+describe('MiniappHost — retry UX', () => {
+  it('auto-retry: resuelve tras 1 falla transitoria, sin fallback', async () => {
+    renderRetry(flakyResolve(1, resolvedWith(manifest(compatibleShared))));
+    expect(await screen.findByText(/montada: accounts:read/)).toBeOnTheScreen();
+    expect(screen.queryByText('Miniapp no disponible')).toBeNull();
+  });
+
+  it('falla retryable persistente → fallback + botón Reintentar', async () => {
+    renderRetry(mockResolve(new Error('resolve failed: down')));
+    expect(await screen.findByText(/No pudimos localizar/)).toBeOnTheScreen();
+    expect(screen.getByText('Reintentar')).toBeOnTheScreen();
+  });
+
+  it('falla permanente (skew) → fallback SIN botón Reintentar', async () => {
+    const skewed = manifest([
+      {name: 'react-native', requiredRange: '^0.99.0', singleton: true},
+    ]);
+    renderRetry(mockResolve(resolvedWith(skewed)));
+    expect(await screen.findByText(/no es compatible/)).toBeOnTheScreen();
+    expect(screen.queryByText('Reintentar')).toBeNull();
+  });
+
+  it('Reintentar (manual) re-carga y monta', async () => {
+    // 2 fallas (inicial + 1 auto-retry) → fallback; el manual arranca budget fresco y monta.
+    renderRetry(flakyResolve(2, resolvedWith(manifest(compatibleShared))));
+    fireEvent.press(await screen.findByText('Reintentar'));
+    expect(await screen.findByText(/montada: accounts:read/)).toBeOnTheScreen();
   });
 });

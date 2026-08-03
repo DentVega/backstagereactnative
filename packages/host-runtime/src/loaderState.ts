@@ -7,6 +7,17 @@ export type FallbackReason =
   | "skew"
   | "integrity-failed";
 
+const RETRYABLE_REASONS: ReadonlySet<FallbackReason> = new Set([
+  "resolve-failed",
+  "download-failed",
+  "integrity-failed",
+]);
+
+/** Retryable = transient (network/CDN/partial download); permanent = skew / invalid-manifest. */
+export function isRetryable(reason: FallbackReason): boolean {
+  return RETRYABLE_REASONS.has(reason);
+}
+
 export type LoaderState =
   | { status: "idle" }
   | { status: "resolving" }
