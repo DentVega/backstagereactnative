@@ -15,7 +15,7 @@ import {
 import type {RootStackParamList} from '../navigation';
 import {useSession, deriveCapabilities} from '../session/store';
 import {repackChunkLoader} from '../chunkLoader';
-import {HOST_PROVIDED, BACKSTAGE_BASE_URL} from '../hostProvided';
+import {HOST_PROVIDED, HOST_CONTRACT_VERSION, BACKSTAGE_BASE_URL} from '../hostProvided';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Miniapp'>;
 
@@ -46,6 +46,7 @@ export function MiniappScreen({route}: Props): React.JSX.Element {
         resolveClient={resolveClient}
         chunkLoader={repackChunkLoader}
         hostProvided={HOST_PROVIDED}
+        hostContractVersion={HOST_CONTRACT_VERSION}
         capabilities={grant}
         integrity={isDevRemote(id, devRemotes) ? noopVerifier : integrityVerifier}
       />

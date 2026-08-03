@@ -170,4 +170,26 @@ describe('MiniappHost — retry UX', () => {
     fireEvent.press(await screen.findByText('Reintentar'));
     expect(await screen.findByText(/montada: accounts:read/)).toBeOnTheScreen();
   });
+
+  it('host-too-old → fallback SIN botón Reintentar', async () => {
+    const m = {
+      ...manifest(compatibleShared),
+      minHostContract: {reactNative: '0.76.0', contractVersion: '0.2.0'},
+    };
+    render(
+      <ThemeProvider scheme="light">
+        <MiniappHost
+          id={ID}
+          resolveClient={mockResolve(resolvedWith(m))}
+          chunkLoader={mockChunk}
+          hostProvided={hostProvided}
+          capabilities={grant}
+          hostContractVersion="0.1.0"
+          retry={{backoffMs: 0}}
+        />
+      </ThemeProvider>,
+    );
+    expect(await screen.findByText(/Actualizá la app/)).toBeOnTheScreen();
+    expect(screen.queryByText('Reintentar')).toBeNull();
+  });
 });
