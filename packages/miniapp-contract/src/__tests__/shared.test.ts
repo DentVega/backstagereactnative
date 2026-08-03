@@ -1,5 +1,5 @@
 import type { SemVer, SharedDepSpec } from "../types.js";
-import { satisfiesRange, satisfiesShared } from "../shared.js";
+import { gteVersion, satisfiesRange, satisfiesShared } from "../shared.js";
 
 const v = (s: string): SemVer => s as SemVer;
 
@@ -82,4 +82,17 @@ describe("satisfiesShared — semver real", () => {
     expect(satisfiesShared({ "react-native": "0.77.0" } as never, shared("^0.76.6") as never).compatible).toBe(false);
     expect(satisfiesShared({ "react-native": "0.76.9" } as never, shared("^0.76.6") as never).compatible).toBe(true);
   });
+});
+
+describe("gteVersion", () => {
+  it("igual → true", () => expect(gteVersion("1.0.0", "1.0.0")).toBe(true));
+  it("mayor → true", () => {
+    expect(gteVersion("1.2.0", "1.1.9")).toBe(true);
+    expect(gteVersion("0.2.0", "0.1.5")).toBe(true);
+  });
+  it("menor → false", () => {
+    expect(gteVersion("0.1.0", "0.2.0")).toBe(false);
+    expect(gteVersion("1.0.0", "1.0.1")).toBe(false);
+  });
+  it("parse inválido → false", () => expect(gteVersion("x", "1.0.0")).toBe(false));
 });

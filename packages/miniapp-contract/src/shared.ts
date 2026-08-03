@@ -62,6 +62,16 @@ export function satisfiesRange(version: string, range: string): boolean {
   return pMajor === rMajor && pMinor === rMinor && pPatch === rPatch;
 }
 
+/** a >= b (semver). Parse inválido → false. Usado por el runtime guard host-too-old. */
+export function gteVersion(a: string, b: string): boolean {
+  const pa = parseTriple(a);
+  const pb = parseTriple(b);
+  if (pa === null || pb === null) return false;
+  if (pa[0] !== pb[0]) return pa[0] > pb[0];
+  if (pa[1] !== pb[1]) return pa[1] > pb[1];
+  return pa[2] >= pb[2];
+}
+
 /**
  * Compare what the host provides (name → concrete version) against what a
  * miniapp requires. Compatible only when every required dep is present and in range.
