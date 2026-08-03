@@ -55,3 +55,20 @@ test("requireNativeModules: vacío sin allow → throw (fail-loud)", () => {
 test("requireNativeModules: vacío con ALLOW_NO_NATIVES → [] permitido", () => {
   assert.deepEqual(requireNativeModules([], true), []);
 });
+
+test("buildHostContract incluye generatedAt/hostCommit cuando se pasan (procedencia)", () => {
+  const c = buildHostContract(SHARED_DEPS, fakePkg, {
+    contractVersion: "1.0.0",
+    generatedAt: "2026-08-03T00:00:00.000Z",
+    hostCommit: "abc1234",
+  });
+  assert.equal(c.generatedAt, "2026-08-03T00:00:00.000Z");
+  assert.equal(c.hostCommit, "abc1234");
+  assert.equal(isHostContract(c), true);
+});
+
+test("buildHostContract omite procedencia si no se pasa (backward-compat)", () => {
+  const c = buildHostContract(SHARED_DEPS, fakePkg, { contractVersion: "1.0.0" });
+  assert.equal("generatedAt" in c, false);
+  assert.equal("hostCommit" in c, false);
+});

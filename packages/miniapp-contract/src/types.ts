@@ -81,4 +81,8 @@ export interface HostContract {
   shared: Readonly<Record<string, string>>;
   /** Native modules without a JS API compiled into the binary (presence only). */
   nativeModules: readonly string[];
+  /** Procedencia (opcional): ISO timestamp de cuándo se generó este contract. */
+  readonly generatedAt?: string;
+  /** Procedencia (opcional): git sha del host build que lo generó. */
+  readonly hostCommit?: string;
 }
