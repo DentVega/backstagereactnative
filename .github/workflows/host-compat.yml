@@ -1,20 +1,53 @@
 name: Host compat gate (blast-radius)
+
+# Corre en TODOS los PRs (sin `paths:` filter) para que el check `blast-radius`
+# SIEMPRE reporte — si no, al ser un required status check con path filter, los PRs
+# que no tocan deps del host quedan bloqueados esperando un check que nunca corre.
+# El trabajo pesado (install + blast-radius real) solo se ejecuta cuando efectivamente
+# cambian los deps del host; si no, el job pasa limpio (nada que romper la flota).
 on:
   pull_request:
-    paths: ['apps/host/package.json', 'apps/host/shared-deps.mjs', 'pnpm-lock.yaml']
+
 jobs:
   blast-radius:
     runs-on: ubuntu-latest
-    defaults: { run: { working-directory: apps/host } }
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect host-dep changes
+        id: changes
+        run: |
+          set -euo pipefail
+          BASE="${{ github.event.pull_request.base.sha }}"
+          HEAD="${{ github.event.pull_request.head.sha }}"
+          if git diff --name-only "$BASE" "$HEAD" \
+            | grep -qE '^(apps/host/package\.json|apps/host/shared-deps\.mjs|pnpm-lock\.yaml)$'; then
+            echo "hostdeps=true" >> "$GITHUB_OUTPUT"
+            echo "Host dep files changed → corriendo blast-radius."
+          else
+            echo "hostdeps=false" >> "$GITHUB_OUTPUT"
+            echo "Sin cambios en deps del host → blast-radius no aplica. ✔"
+          fi
+
       - uses: actions/setup-node@v4
-        with: { node-version: 24 }
-      - run: corepack enable && pnpm install --frozen-lockfile
-        working-directory: .
-      - run: pnpm --filter @dentvega/miniapp-contract build   # dist para el import del script
-        working-directory: .
-      - run: node scripts/check-host-compat.mjs
+        if: steps.changes.outputs.hostdeps == 'true'
+        with:
+          node-version: 24
+
+      - name: Install deps
+        if: steps.changes.outputs.hostdeps == 'true'
+        run: corepack enable && pnpm install --frozen-lockfile
+
+      - name: Build contract package
+        if: steps.changes.outputs.hostdeps == 'true'
+        run: pnpm --filter @dentvega/miniapp-contract build # dist para el import del script
+
+      - name: Blast-radius check
+        if: steps.changes.outputs.hostdeps == 'true'
+        working-directory: apps/host
+        run: node scripts/check-host-compat.mjs
         env:
           BACKSTAGE_URL: ${{ secrets.BACKSTAGE_URL }}
           ACCEPT_BREAKING: ${{ contains(github.event.pull_request.labels.*.name, 'accept-breaking-contract') }}
