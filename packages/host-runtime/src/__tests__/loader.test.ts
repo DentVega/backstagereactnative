@@ -69,6 +69,33 @@ describe('evaluateManifest', () => {
     );
     expect(res).toMatchObject({ok: false, reason: 'skew'});
   });
+
+  const withMin = (rn: string, cv: string) => ({
+    ...validManifest,
+    minHostContract: {reactNative: rn, contractVersion: cv},
+  });
+
+  it('host más nuevo/igual que el minHostContract → ok', () => {
+    expect(evaluateManifest(withMin('0.76.0', '0.1.0'), hostProvided, '0.1.0')).toMatchObject({ok: true});
+  });
+  it('host viejo en contractVersion → host-too-old', () => {
+    expect(evaluateManifest(withMin('0.76.0', '0.2.0'), hostProvided, '0.1.0')).toMatchObject({
+      ok: false,
+      reason: 'host-too-old',
+    });
+  });
+  it('host viejo en react-native → host-too-old', () => {
+    expect(evaluateManifest(withMin('0.80.0', '0.1.0'), hostProvided, '0.1.0')).toMatchObject({
+      ok: false,
+      reason: 'host-too-old',
+    });
+  });
+  it('sin hostContractVersion → no-op (ok)', () => {
+    expect(evaluateManifest(withMin('0.80.0', '0.2.0'), hostProvided)).toMatchObject({ok: true});
+  });
+  it('sin minHostContract → ok', () => {
+    expect(evaluateManifest(validManifest, hostProvided, '0.1.0')).toMatchObject({ok: true});
+  });
 });
 
 describe('isRetryable', () => {

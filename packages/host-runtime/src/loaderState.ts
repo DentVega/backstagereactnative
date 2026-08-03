@@ -5,7 +5,8 @@ export type FallbackReason =
   | "download-failed"
   | "invalid-manifest"
   | "skew"
-  | "integrity-failed";
+  | "integrity-failed"
+  | "host-too-old";
 
 const RETRYABLE_REASONS: ReadonlySet<FallbackReason> = new Set([
   "resolve-failed",

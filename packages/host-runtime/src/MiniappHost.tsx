@@ -18,6 +18,8 @@ export interface MiniappHostProps {
   integrity?: IntegrityVerifier;
   onRetry?: () => void;
   retry?: { maxAuto?: number; backoffMs?: number };
+  /** contractVersion del host — habilita el guard host-too-old (minHostContract). */
+  hostContractVersion?: string;
 }
 
 const FALLBACK_COPY: Record<FallbackReason, string> = {
@@ -26,6 +28,7 @@ const FALLBACK_COPY: Record<FallbackReason, string> = {
   "invalid-manifest": "La miniapp tiene un manifiesto inválido.",
   skew: "Esta miniapp no es compatible con esta versión de la app. Actualizá la app para usarla.",
   "integrity-failed": "No pudimos verificar la integridad de la miniapp.",
+  "host-too-old": "Actualizá la app para usar esta miniapp.",
 };
 
 export function MiniappHost(props: MiniappHostProps): React.JSX.Element {
@@ -37,6 +40,7 @@ export function MiniappHost(props: MiniappHostProps): React.JSX.Element {
     hostProvided: props.hostProvided,
     integrity: props.integrity,
     retry: props.retry,
+    hostContractVersion: props.hostContractVersion,
   });
 
   if (state.status === "fallback") {

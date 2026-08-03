@@ -18,6 +18,8 @@ export interface UseMiniappDeps {
   chunkLoader: ChunkLoader;
   hostProvided: HostProvided;
   integrity?: IntegrityVerifier;
+  /** contractVersion del propio host — habilita el guard host-too-old (minHostContract). */
+  hostContractVersion?: string;
   /** Auto-retry en fallas transitorias. Defaults: maxAuto=1, backoffMs=800. */
   retry?: { maxAuto?: number; backoffMs?: number };
 }
@@ -67,7 +69,7 @@ export function useMiniapp(deps: UseMiniappDeps): UseMiniappResult {
           const resolved = await resolveClient.resolve({ id });
           if (cancelled.current) return;
 
-          const evaluated = evaluateManifest(resolved.manifest, hostProvided);
+          const evaluated = evaluateManifest(resolved.manifest, hostProvided, deps.hostContractVersion);
           if (!evaluated.ok) {
             failure = { reason: evaluated.reason, detail: evaluated.detail };
           } else {
@@ -115,7 +117,7 @@ export function useMiniapp(deps: UseMiniappDeps): UseMiniappResult {
     return () => {
       cancelled.current = true;
     };
-  }, [id, resolveClient, chunkLoader, hostProvided, integrity, attempt, maxAuto, backoffMs]);
+  }, [id, resolveClient, chunkLoader, hostProvided, integrity, deps.hostContractVersion, attempt, maxAuto, backoffMs]);
 
   return { state, Entry, reload, retrying };
 }
