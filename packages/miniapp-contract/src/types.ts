@@ -85,4 +85,9 @@ export interface HostContract {
   readonly generatedAt?: string;
   /** Procedencia (opcional): git sha del host build que lo generó. */
   readonly hostCommit?: string;
+  /** Procedencia (opcional): en qué contractVersion se introdujo cada capability. */
+  readonly capabilitySince?: {
+    readonly shared: Readonly<Record<string, string>>;
+    readonly native: Readonly<Record<string, string>>;
+  };
 }

@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { SHARED_DEPS, CONTRACT_VERSION, buildMfShared } from "../../shared-deps.mjs";
+import { SHARED_DEPS, CONTRACT_VERSION, CAPABILITY_SINCE, buildMfShared } from "../../shared-deps.mjs";
 
 // pkgVersion falso y determinista para el snapshot.
 const fakePkg = (name) => `v(${name})`;
@@ -28,4 +28,18 @@ test("react y react-native NO llevan campo version (solo requiredVersion exacto)
 test("CONTRACT_VERSION es la fuente única y tiene forma semver", () => {
   assert.equal(typeof CONTRACT_VERSION, "string");
   assert.match(CONTRACT_VERSION, /^\d+\.\d+\.\d+$/);
+});
+
+test("CAPABILITY_SINCE cubre toda SHARED_DEP", () => {
+  for (const d of SHARED_DEPS) assert.equal(typeof CAPABILITY_SINCE.shared[d.name], "string");
+});
+
+test("CAPABILITY_SINCE.native tiene los 4 nativos del host", () => {
+  for (const n of [
+    "@shopify/flash-list",
+    "react-native-safe-area-context",
+    "react-native-screens",
+    "@callstack/repack",
+  ])
+    assert.equal(typeof CAPABILITY_SINCE.native[n], "string");
 });
