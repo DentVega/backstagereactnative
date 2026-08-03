@@ -3,6 +3,21 @@
  * Consumida por rspack.config.mjs (para el `shared` de MF) y por
  * scripts/gen-host-contract.mjs (para el Host Contract). Antes estaba duplicada.
  */
+
+/**
+ * Versión del CONTRATO del host — fuente única. NO es la versión de la app: bumpea
+ * solo cuando cambia lo que el host provee. La consumen gen-host-contract (el contract
+ * publicado) y el runtime (guard host-too-old, vía DefinePlugin __HOST_CONTRACT_VERSION__).
+ *
+ * Política de bump (semver del contrato):
+ *   - minor (0.1.0 → 0.2.0): agregar un singleton o un módulo nativo (aditivo — las
+ *     miniapps viejas siguen; las nuevas pueden requerirlo con `minHostContract`).
+ *   - major (0.x.y → 1.0.0): quitar/cambiar-incompatible un singleton o native, o bump
+ *     mayor de react-native (rompe miniapps que dependían de lo viejo).
+ *   - patch: tweaks que NO afectan el contrato.
+ */
+export const CONTRACT_VERSION = "0.1.0";
+
 export const SHARED_DEPS = [
   { name: "react", requiredVersion: "18.3.1" },
   { name: "react-native", requiredVersion: "0.76.6" },
