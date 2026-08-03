@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 import * as Repack from '@callstack/repack';
 import rspack from '@rspack/core';
-import { SHARED_DEPS, buildMfShared } from './shared-deps.mjs';
+import { SHARED_DEPS, CONTRACT_VERSION, buildMfShared } from './shared-deps.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -71,6 +71,8 @@ export default Repack.defineRspackConfig({
       ),
       __DEV_MINIAPP_CAPS__: JSON.stringify(devMiniappCaps),
       __DEV_REMOTES__: JSON.stringify(process.env.DEV_REMOTES ?? ''),
+      // contractVersion del host (fuente única shared-deps.mjs) → guard host-too-old.
+      __HOST_CONTRACT_VERSION__: JSON.stringify(CONTRACT_VERSION),
     }),
     /**
      * Module Federation v2 — the host container.

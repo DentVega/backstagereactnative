@@ -16,10 +16,12 @@ export const HOST_PROVIDED: HostProvided = {
 /**
  * contractVersion de ESTE binario del host — habilita el guard host-too-old:
  * una miniapp que declara `minHostContract` con un contractVersion mayor a este
- * no se monta (fallback "actualizá la app"). Mantener en sync con el `version`
- * del host package.json (de donde gen-host-contract deriva el contractVersion).
+ * no se monta (fallback "actualizá la app"). Inyectado en build-time por el
+ * DefinePlugin desde la fuente única `shared-deps.mjs` (CONTRACT_VERSION); el
+ * fallback es solo para jest/dev sin bundler.
  */
-export const HOST_CONTRACT_VERSION = '0.1.0';
+export const HOST_CONTRACT_VERSION =
+  typeof __HOST_CONTRACT_VERSION__ !== 'undefined' ? __HOST_CONTRACT_VERSION__ : '0.1.0';
 
 /**
  * Base URL of the Backstage registry. Injected at build time by the rspack

@@ -4,11 +4,11 @@
  * Uso: node scripts/gen-host-contract.mjs   (escribe apps/host/host-contract.json)
  */
 import { createRequire } from "node:module";
-import { readFileSync, writeFileSync } from "node:fs";
+import { writeFileSync } from "node:fs";
 import { execSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
-import { SHARED_DEPS } from "../shared-deps.mjs";
+import { SHARED_DEPS, CONTRACT_VERSION } from "../shared-deps.mjs";
 
 const require = createRequire(import.meta.url);
 const pkgVersion = (name) => require(`${name}/package.json`).version;
@@ -59,8 +59,9 @@ export function requireNativeModules(nativeModules, allowEmpty) {
 
 // --- CLI ---
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const hostPkg = JSON.parse(readFileSync(path.join(__dirname, "..", "package.json"), "utf8"));
-const contractVersion = process.env.CONTRACT_VERSION ?? hostPkg.version ?? "1.0.0";
+// contractVersion = fuente única en shared-deps.mjs (CONTRACT_VERSION), NO la versión
+// de la app. Override por env solo para casos puntuales de CI.
+const contractVersion = process.env.CONTRACT_VERSION ?? CONTRACT_VERSION;
 
 // El bloque CLI solo corre cuando se ejecuta directo (no al importar en tests).
 if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
