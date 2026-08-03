@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { buildHostContract, parseAutolinkedNatives } from "../gen-host-contract.mjs";
+import { buildHostContract, parseAutolinkedNatives, requireNativeModules } from "../gen-host-contract.mjs";
 import { SHARED_DEPS } from "../../shared-deps.mjs";
 import { isHostContract } from "@dentvega/miniapp-contract";
 
@@ -42,4 +42,16 @@ test("buildHostContract incluye los nativeModules pasados", () => {
   const fakePkg = (name) => (name === "react-native" ? "0.76.6" : "1.0.0");
   const c = buildHostContract(SHARED_DEPS, fakePkg, { contractVersion: "1.0.0", nativeModules: ["react-native-screens"] });
   assert.deepEqual(c.nativeModules, ["react-native-screens"]);
+});
+
+test("requireNativeModules: lista no vacía → passthrough", () => {
+  assert.deepEqual(requireNativeModules(["react-native-screens"], false), ["react-native-screens"]);
+});
+
+test("requireNativeModules: vacío sin allow → throw (fail-loud)", () => {
+  assert.throws(() => requireNativeModules([], false), /no native modules detected/);
+});
+
+test("requireNativeModules: vacío con ALLOW_NO_NATIVES → [] permitido", () => {
+  assert.deepEqual(requireNativeModules([], true), []);
 });

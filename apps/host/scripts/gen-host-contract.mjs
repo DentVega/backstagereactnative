@@ -40,6 +40,23 @@ export function parseAutolinkedNatives(rnConfig) {
     .map(([name]) => name);
 }
 
+/**
+ * Fail-loud: un `nativeModules` vacío casi siempre significa que `react-native config`
+ * falló o el autolinking no detectó nada. Publicar un contract con [] haría que TODA
+ * miniapp con un módulo nativo sea marcada incompatible (falso positivo del gate).
+ * Abortá salvo que el host realmente no tenga nativos (`ALLOW_NO_NATIVES=1`).
+ */
+export function requireNativeModules(nativeModules, allowEmpty) {
+  if (nativeModules.length === 0 && !allowEmpty) {
+    throw new Error(
+      "gen-host-contract: no native modules detected — un contract con nativeModules vacío " +
+        "rompería el gate de compat (toda miniapp con un nativo quedaría incompatible). " +
+        "Si el host REALMENTE no tiene nativos, corré con ALLOW_NO_NATIVES=1.",
+    );
+  }
+  return nativeModules;
+}
+
 // --- CLI ---
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const hostPkg = JSON.parse(readFileSync(path.join(__dirname, "..", "package.json"), "utf8"));
@@ -58,7 +75,14 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.a
     });
     nativeModules = parseAutolinkedNatives(JSON.parse(raw));
   } catch (err) {
-    console.warn(`gen-host-contract: react-native config failed (${err}) — nativeModules: []`);
+    console.warn(`gen-host-contract: react-native config failed (${err})`);
+  }
+  // Fail-loud: no publicar un contract con nativeModules vacío (falso positivo del gate).
+  try {
+    nativeModules = requireNativeModules(nativeModules, process.env.ALLOW_NO_NATIVES === "1");
+  } catch (err) {
+    console.error(String(err?.message ?? err));
+    process.exit(1);
   }
   const contract = buildHostContract(SHARED_DEPS, pkgVersion, { contractVersion, nativeModules });
   const out = path.join(__dirname, "..", "host-contract.json");
