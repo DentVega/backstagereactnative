@@ -1,5 +1,5 @@
 import type {Manifest, MiniappId, SemVer} from '@dentvega/miniapp-contract';
-import {initialLoaderState, nextLoaderState} from '../loaderState';
+import {initialLoaderState, isRetryable, nextLoaderState} from '../loaderState';
 import {evaluateManifest, type HostProvided} from '../evaluate';
 
 const resolved = {
@@ -68,5 +68,17 @@ describe('evaluateManifest', () => {
       hostProvided,
     );
     expect(res).toMatchObject({ok: false, reason: 'skew'});
+  });
+});
+
+describe('isRetryable', () => {
+  it('transitorias son retryable', () => {
+    expect(isRetryable('resolve-failed')).toBe(true);
+    expect(isRetryable('download-failed')).toBe(true);
+    expect(isRetryable('integrity-failed')).toBe(true);
+  });
+  it('permanentes no son retryable', () => {
+    expect(isRetryable('skew')).toBe(false);
+    expect(isRetryable('invalid-manifest')).toBe(false);
   });
 });
