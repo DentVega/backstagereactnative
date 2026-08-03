@@ -14,7 +14,11 @@ const require = createRequire(import.meta.url);
 const pkgVersion = (name) => require(`${name}/package.json`).version;
 
 /** Construye el HostContract (pura, testeable). */
-export function buildHostContract(deps, resolveVersion, { contractVersion, nativeModules = [] }) {
+export function buildHostContract(
+  deps,
+  resolveVersion,
+  { contractVersion, nativeModules = [], generatedAt, hostCommit },
+) {
   const shared = {};
   for (const d of deps) shared[d.name] = resolveVersion(d.name);
   return {
@@ -22,6 +26,8 @@ export function buildHostContract(deps, resolveVersion, { contractVersion, nativ
     reactNative: resolveVersion("react-native"),
     shared,
     nativeModules,
+    ...(generatedAt !== undefined ? { generatedAt } : {}),
+    ...(hostCommit !== undefined ? { hostCommit } : {}),
   };
 }
 
@@ -85,7 +91,20 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.a
     console.error(String(err?.message ?? err));
     process.exit(1);
   }
-  const contract = buildHostContract(SHARED_DEPS, pkgVersion, { contractVersion, nativeModules });
+  // Procedencia: cuándo y de qué commit del host se generó (diagnóstico de drift).
+  const generatedAt = new Date().toISOString();
+  let hostCommit = "unknown";
+  try {
+    hostCommit = execSync("git rev-parse HEAD", { cwd: __dirname, encoding: "utf8" }).trim();
+  } catch {
+    /* fuera de un repo git → "unknown" */
+  }
+  const contract = buildHostContract(SHARED_DEPS, pkgVersion, {
+    contractVersion,
+    nativeModules,
+    generatedAt,
+    hostCommit,
+  });
   const out = path.join(__dirname, "..", "host-contract.json");
   writeFileSync(out, `${JSON.stringify(contract, null, 2)}\n`, "utf8");
   console.log(
