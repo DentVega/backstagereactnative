@@ -69,3 +69,30 @@ export function buildMfShared(deps, pkgVersion) {
   }
   return shared;
 }
+
+/**
+ * Runtime deps que el host bundlea — NO son singletons compartidos ni módulos nativos.
+ * Mantener al día con package.json: el check de reconciliación (reconcileDeps) exige que
+ * TODA runtime dep esté en SHARED_DEPS, en CAPABILITY_SINCE.native, o acá.
+ */
+export const BUNDLED_DEPS = ["@dentvega/host-runtime", "@dentvega/miniapp-contract"];
+
+/**
+ * Reconcilia las runtime deps del host contra su clasificación (shared | native | bundled).
+ * Devuelve las violaciones (listas vacías = OK). Pura y testeable.
+ *   - unclassified: deps del package.json sin clasificar → agregá una decisión consciente.
+ *   - phantomShared: nombres en SHARED_DEPS que ya no son deps reales.
+ *   - staleBundled:  nombres en BUNDLED_DEPS que ya no son deps reales.
+ *   - conflicting:   un nombre en SHARED_DEPS y BUNDLED_DEPS a la vez (contradicción).
+ * (No se exige native ⊆ deps: hay natives autolinkeados que son devDeps, ej. @callstack/repack.)
+ */
+export function reconcileDeps(dependencies, { shared, native, bundled }) {
+  const classified = new Set([...shared, ...native, ...bundled]);
+  const depSet = new Set(dependencies);
+  return {
+    unclassified: dependencies.filter((d) => !classified.has(d)),
+    phantomShared: shared.filter((n) => !depSet.has(n)),
+    staleBundled: bundled.filter((n) => !depSet.has(n)),
+    conflicting: shared.filter((n) => bundled.includes(n)),
+  };
+}
