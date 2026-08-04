@@ -46,7 +46,6 @@ export const CAPABILITY_SINCE = {
 
 export const SHARED_DEPS = [
   { name: "react", requiredVersion: "18.3.1" },
-  { name: "react-native", requiredVersion: "0.76.6" },
   { name: "@tanstack/react-query", requiredVersion: "^5.0.0", provideVersion: true },
   { name: "@shopify/flash-list", requiredVersion: "^1.7.0", provideVersion: true },
   { name: "zustand", requiredVersion: "^5.0.0", provideVersion: true },
