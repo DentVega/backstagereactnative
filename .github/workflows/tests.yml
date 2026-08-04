@@ -1,0 +1,25 @@
+name: Tests
+
+on:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      - name: Typecheck
+        run: pnpm -r --if-present typecheck
+      - name: Unit tests (jest — packages + host)
+        run: pnpm -r --if-present test
+      - name: Script tests (node:test — .mjs)
+        run: node --test apps/host/scripts/__tests__/*.test.mjs scripts/*.test.mjs
