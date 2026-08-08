@@ -114,6 +114,28 @@ describe('HomeScreen', () => {
     expect(screen.getByText('Sin versión publicada')).toBeOnTheScreen();
   });
 
+  it('muestra la versión servida; sin servedVersion cae a latestVersion', async () => {
+    renderHome();
+    // account_dashboard no trae servedVersion → cae a latestVersion (0.5.0).
+    expect(await screen.findByText('v0.5.0 · 2 versiones')).toBeOnTheScreen();
+  });
+
+  it('muestra la servida + indicador de rollback cuando difiere de la última', async () => {
+    mockCatalog([
+      {
+        id: 'account_dashboard',
+        name: 'Account Dashboard',
+        owner: 'o',
+        latestVersion: '0.5.0',
+        servedVersion: '0.4.0',
+        versionCount: 3,
+      },
+    ]);
+    renderHome();
+    expect(await screen.findByText('v0.4.0 · 3 versiones')).toBeOnTheScreen();
+    expect(screen.getByText('🔒 fijada · última v0.5.0')).toBeOnTheScreen();
+  });
+
   it('opens a published miniapp by id', async () => {
     const user = userEvent.setup();
     const nav = renderHome();

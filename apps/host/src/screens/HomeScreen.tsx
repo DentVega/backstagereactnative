@@ -23,6 +23,10 @@ function MiniappCard({
   onOpen: () => void;
 }): React.JSX.Element {
   const published = item.latestVersion !== null;
+  // La servida (pinnedVersion ?? latest) es lo que se monta; con backend viejo cae a latest.
+  const served = item.servedVersion ?? item.latestVersion;
+  const rolledBack =
+    served !== null && item.latestVersion !== null && served !== item.latestVersion;
   return (
     <Card>
       <AppText variant="title">{item.name}</AppText>
@@ -33,11 +37,16 @@ function MiniappCard({
       <View style={styles.gap8} />
       <AppText variant="body" color="textMuted">
         {published
-          ? `v${item.latestVersion} · ${item.versionCount} ${
+          ? `v${served} · ${item.versionCount} ${
               item.versionCount === 1 ? 'versión' : 'versiones'
             }`
           : 'Sin versión publicada'}
       </AppText>
+      {rolledBack ? (
+        <AppText variant="caption" color="primary">
+          🔒 fijada · última v{item.latestVersion}
+        </AppText>
+      ) : null}
       <View style={styles.gap8} />
       <Button label="Abrir miniapp" onPress={onOpen} disabled={!published} />
     </Card>
