@@ -7,6 +7,11 @@ export interface MiniappSummary {
   readonly owner: string;
   /** Highest published version, or null if none is published yet. */
   readonly latestVersion: string | null;
+  /**
+   * Version the host actually serves (pinnedVersion ?? latest). Optional para
+   * tolerar backends viejos que aún no lo exponen → el host cae a latestVersion.
+   */
+  readonly servedVersion?: string | null;
   readonly versionCount: number;
 }
 
