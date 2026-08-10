@@ -9,6 +9,7 @@ import {
 } from "./loaderState";
 import { evaluateManifest, type HostProvided } from "./evaluate";
 import type { ResolveClient } from "./ResolveClient";
+import type { MetricsClient } from "./MetricsClient";
 import type { ChunkLoader, EntryComponent } from "./ChunkLoader";
 import { noopVerifier, type IntegrityVerifier } from "./integrity";
 
@@ -22,6 +23,8 @@ export interface UseMiniappDeps {
   hostContractVersion?: string;
   /** Versión servida a resolver (del catálogo) — habilita el cache por-versión. */
   resolveVersion?: string;
+  /** Telemetría (best-effort): reporta mount / fallback. Opcional → no-op si falta. */
+  metrics?: MetricsClient;
   /** Auto-retry en fallas transitorias. Defaults: maxAuto=1, backoffMs=800. */
   retry?: { maxAuto?: number; backoffMs?: number };
 }
@@ -67,9 +70,11 @@ export function useMiniapp(deps: UseMiniappDeps): UseMiniappResult {
 
         let failure: { reason: FallbackReason; detail: string } | null = null;
         let component: EntryComponent | null = null;
+        let mountVersion: string | undefined;
         try {
           const resolved = await resolveClient.resolve({ id, version: deps.resolveVersion as SemVer | undefined });
           if (cancelled.current) return;
+          mountVersion = resolved.version;
 
           const evaluated = evaluateManifest(resolved.manifest, hostProvided, deps.hostContractVersion);
           if (!evaluated.ok) {
@@ -100,6 +105,7 @@ export function useMiniapp(deps: UseMiniappDeps): UseMiniappResult {
           const mounted = component;
           setEntry(() => mounted);
           dispatch({ type: "mounted" });
+          deps.metrics?.track({ type: "mount", id, version: mountVersion });
           setRetrying(false);
           return;
         }
@@ -111,6 +117,7 @@ export function useMiniapp(deps: UseMiniappDeps): UseMiniappResult {
           continue;
         }
         dispatch({ type: "fail", reason: f.reason, detail: f.detail });
+        deps.metrics?.track({ type: "fallback", id, reason: f.reason });
         setRetrying(false);
         return;
       }

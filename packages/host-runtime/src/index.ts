@@ -15,6 +15,8 @@ export { sha256Hex } from "./sha256";
 export type { ResolveClient } from "./ResolveClient";
 export { httpResolveClient } from "./ResolveClient";
 export { cachingResolveClient } from "./cachingResolveClient";
+export type { MetricsClient, MetricEvent } from "./MetricsClient";
+export { httpMetricsClient, noopMetricsClient } from "./MetricsClient";
 
 export { parseDevRemotes, devResolveClient, isDevRemote } from "./devResolveClient";
 

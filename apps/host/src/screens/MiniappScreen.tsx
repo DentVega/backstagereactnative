@@ -7,6 +7,7 @@ import {
   createScopedGrant,
   httpResolveClient,
   cachingResolveClient,
+  httpMetricsClient,
   sha256Verifier,
   noopVerifier,
   parseDevRemotes,
@@ -31,6 +32,7 @@ const resolveClient = cachingResolveClient(
     : httpResolveClient(BACKSTAGE_BASE_URL),
 );
 const integrityVerifier = sha256Verifier();
+const metricsClient = httpMetricsClient(BACKSTAGE_BASE_URL);
 
 export function MiniappScreen({route}: Props): React.JSX.Element {
   const theme = useTheme();
@@ -52,6 +54,7 @@ export function MiniappScreen({route}: Props): React.JSX.Element {
         hostProvided={HOST_PROVIDED}
         hostContractVersion={HOST_CONTRACT_VERSION}
         resolveVersion={servedVersion}
+        metrics={metricsClient}
         capabilities={grant}
         integrity={isDevRemote(id, devRemotes) ? noopVerifier : integrityVerifier}
       />
