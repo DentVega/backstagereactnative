@@ -52,7 +52,7 @@ This repo carries a full **AI-DLC** trail: business intents → units → storie
 
 ## Status
 
-The **web platform demo is live** (link above). The mobile host's JS/federation layer is built and unit-tested; a full on-device native build is environment-blocked on the current machine and is out of scope for this showcase — the value story is the **federation architecture + delivery workflow**.
+The **web platform demo is live** (link above). The mobile host runs its **full native build end-to-end on both Android and iOS** — Android emulator/device and iOS Simulator + a real iPhone (signed via Xcode) — resolving, verifying, and mounting federated miniapp chunks per platform.
 
 ## Related repos
 

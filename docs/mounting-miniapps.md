@@ -80,25 +80,40 @@ Solo necesita un contenedor con altura (flex o `height`).
 
 ### 2. Publicar / registrar en Backstage
 
-El host pregunta `GET /api/resolve?id=<id>` y espera `{ url, manifest }`. Hay que
-dejar la miniapp en el registry con una versión cuyo `url` apunte al chunk:
+El host pregunta `GET /api/resolve?id=<id>&platform=<android|ios>` y espera
+`{ url, manifest }` (el resolve responde con el chunk de la plataforma pedida:
+`platform=ios` → `iosUrl`, la integrity del manifest corresponde al chunk de esa
+plataforma; sin `platform` → chunk android). Hay que dejar la miniapp en el
+registry con una versión que tenga **ambos** `url` (android) e `iosUrl` (ios)
+apuntando a sus chunks:
 
 - **Dev rápido:** agregar la entrada en `backstage-web/data/registry.json` (o
-  `POST /api/miniapps/:id/publish`) con el `url` del chunk.
-- **Prod / CI:** `POST /api/miniapps/:id/upload` (Bearer `PUBLISH_TOKEN`) con el zip
-  del build → se guarda en Blob → resolve devuelve la URL de Blob.
+  `POST /api/miniapps/:id/publish`) con el `url` del chunk (y `iosUrl` si aplica).
+- **Prod / CI:** `POST /api/miniapps/:id/upload` (Bearer `PUBLISH_TOKEN`), una vez
+  por plataforma (`platform=android`, `platform=ios`) con el zip del build de esa
+  plataforma → se guarda en Blob bajo `${id}/${version}/ios/` (o `/android/`) →
+  resolve devuelve la URL de Blob correspondiente.
 
 **Servir el chunk en una URL alcanzable por el device:**
-- **Dev:** static server del directorio del build + `adb reverse tcp:<port> tcp:<port>`,
+- **Dev — Android:** static server del directorio del build + `adb reverse tcp:<port> tcp:<port>`,
   URL **limpia** (sin `?platform`). Ej.:
   ```bash
   python3 -m http.server 9000 --directory build/generated/android
   adb reverse tcp:9000 tcp:9000
   # registry url = http://localhost:9000/<id>.container.js.bundle
   ```
-- **Prod:** URL pública de Blob/CDN.
+- **Dev — iOS:** mismo esquema, pero serví el directorio generado por `bundle:ios`
+  (`build/generated/ios/`, con el container + vendor chunks co-ubicados). El
+  Simulador llega directo a `localhost`; un iPhone real necesita la IP de la Mac
+  en la LAN (no hay `adb reverse` en iOS):
+  ```bash
+  python3 -m http.server 9001 --directory build/generated/ios
+  # registry iosUrl = http://localhost:9001/<id>.container.js.bundle          (Simulador)
+  # registry iosUrl = http://<IP-de-la-Mac>:9001/<id>.container.js.bundle     (iPhone real)
+  ```
+- **Prod:** URL pública de Blob/CDN, una por plataforma.
 - ⚠️ Los sub-chunks se resuelven **relativos al directorio del container**, así que
-  deben estar co-ubicados con él (el build ya los deja así).
+  deben estar co-ubicados con él (el build ya los deja así, por plataforma).
 
 ### 3. Montar en el host
 

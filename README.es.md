@@ -52,7 +52,7 @@ Este repo lleva un rastro **AI-DLC** completo: intents de negocio → units → 
 
 ## Estado
 
-La **demo de la plataforma web está en vivo** (link arriba). La capa JS/federación del host móvil está construida y testeada; el build nativo completo en dispositivo está bloqueado por el entorno de la máquina actual y queda fuera del alcance de este showcase — la historia de valor es la **arquitectura de federación + el flujo de entrega**.
+La **demo de la plataforma web está en vivo** (link arriba). El host móvil corre su **build nativo completo end-to-end en Android e iOS** — emulador/dispositivo Android e iOS Simulator + un iPhone real (firmado con Xcode) — resolviendo, verificando y montando chunks de miniapps federadas por plataforma.
 
 ## Repos relacionados
 
