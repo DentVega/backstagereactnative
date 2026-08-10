@@ -142,9 +142,32 @@ describe('HomeScreen', () => {
     await screen.findByText('Account Dashboard');
     // The first "Abrir miniapp" belongs to the published account_dashboard.
     await user.press(screen.getAllByRole('button', {name: 'Abrir miniapp'})[0]);
+    // Navega con la versión servida (acá = latestVersion, sin pin) para el cache por-versión.
     expect(nav.navigate).toHaveBeenCalledWith('Miniapp', {
       id: 'account_dashboard',
       title: 'Account Dashboard',
+      servedVersion: '0.5.0',
     });
+  });
+
+  it('navega con la versión SERVIDA (fijada) cuando hay rollback', async () => {
+    mockCatalog([
+      {
+        id: 'account_dashboard',
+        name: 'Account Dashboard',
+        owner: 'o',
+        latestVersion: '0.5.0',
+        servedVersion: '0.4.0',
+        versionCount: 3,
+      },
+    ]);
+    const user = userEvent.setup();
+    const nav = renderHome();
+    await screen.findByText('Account Dashboard');
+    await user.press(screen.getByRole('button', {name: 'Abrir miniapp'}));
+    expect(nav.navigate).toHaveBeenCalledWith(
+      'Miniapp',
+      expect.objectContaining({id: 'account_dashboard', servedVersion: '0.4.0'}),
+    );
   });
 });

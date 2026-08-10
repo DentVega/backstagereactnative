@@ -20,6 +20,8 @@ export interface MiniappHostProps {
   retry?: { maxAuto?: number; backoffMs?: number };
   /** contractVersion del host — habilita el guard host-too-old (minHostContract). */
   hostContractVersion?: string;
+  /** Versión servida (del catálogo) — habilita el cache por-versión del resolve. */
+  resolveVersion?: string;
 }
 
 const FALLBACK_COPY: Record<FallbackReason, string> = {
@@ -41,6 +43,7 @@ export function MiniappHost(props: MiniappHostProps): React.JSX.Element {
     integrity: props.integrity,
     retry: props.retry,
     hostContractVersion: props.hostContractVersion,
+    resolveVersion: props.resolveVersion,
   });
 
   if (state.status === "fallback") {

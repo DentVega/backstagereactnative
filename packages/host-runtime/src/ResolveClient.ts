@@ -16,6 +16,9 @@ export function httpResolveClient(baseUrl: string): ResolveClient {
       if (request.hostVersion !== undefined) {
         params.push(`hostVersion=${encodeURIComponent(request.hostVersion)}`);
       }
+      if (request.version !== undefined) {
+        params.push(`version=${encodeURIComponent(request.version)}`);
+      }
       const url = `${baseUrl.replace(/\/+$/, "")}/api/resolve?${params.join("&")}`;
       const res = await fetch(url);
       if (!res.ok) {

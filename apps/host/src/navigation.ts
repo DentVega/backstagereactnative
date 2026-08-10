@@ -2,6 +2,6 @@ import type {MiniappId} from '@dentvega/miniapp-contract';
 
 export type RootStackParamList = {
   Home: undefined;
-  Miniapp: {id: MiniappId; title: string};
+  Miniapp: {id: MiniappId; title: string; servedVersion?: string};
   DevMount: undefined;
 };

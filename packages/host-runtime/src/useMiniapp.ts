@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
-import type { MiniappId } from "@dentvega/miniapp-contract";
+import type { MiniappId, SemVer } from "@dentvega/miniapp-contract";
 import {
   initialLoaderState,
   isRetryable,
@@ -20,6 +20,8 @@ export interface UseMiniappDeps {
   integrity?: IntegrityVerifier;
   /** contractVersion del propio host — habilita el guard host-too-old (minHostContract). */
   hostContractVersion?: string;
+  /** Versión servida a resolver (del catálogo) — habilita el cache por-versión. */
+  resolveVersion?: string;
   /** Auto-retry en fallas transitorias. Defaults: maxAuto=1, backoffMs=800. */
   retry?: { maxAuto?: number; backoffMs?: number };
 }
@@ -66,7 +68,7 @@ export function useMiniapp(deps: UseMiniappDeps): UseMiniappResult {
         let failure: { reason: FallbackReason; detail: string } | null = null;
         let component: EntryComponent | null = null;
         try {
-          const resolved = await resolveClient.resolve({ id });
+          const resolved = await resolveClient.resolve({ id, version: deps.resolveVersion as SemVer | undefined });
           if (cancelled.current) return;
 
           const evaluated = evaluateManifest(resolved.manifest, hostProvided, deps.hostContractVersion);
@@ -117,7 +119,7 @@ export function useMiniapp(deps: UseMiniappDeps): UseMiniappResult {
     return () => {
       cancelled.current = true;
     };
-  }, [id, resolveClient, chunkLoader, hostProvided, integrity, deps.hostContractVersion, attempt, maxAuto, backoffMs]);
+  }, [id, resolveClient, chunkLoader, hostProvided, integrity, deps.hostContractVersion, deps.resolveVersion, attempt, maxAuto, backoffMs]);
 
   return { state, Entry, reload, retrying };
 }
