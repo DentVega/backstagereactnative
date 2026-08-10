@@ -81,6 +81,134 @@ images" de Xcode (no hay un `bundle:ios` aparte en el host).
 
 ---
 
+## Correr miniapps en local — dev-loop (Modo 1 y 2)
+
+Todo lo de arriba corre **el host**. Esto es para **desarrollar una o varias miniapps**
+contra ese host, en tu máquina, sin pasar por CI/prod. Hay dos modos (ambos son
+`__DEV__`-only — no afectan el release):
+
+| | **Modo 1 — dev-mount** | **Modo 2 — remotes federados** |
+|---|---|---|
+| Cuántas miniapps | **1** | **1 o varias** |
+| Cómo carga | compilada dentro del bundle del host (alias `@dev-miniapp`) | como chunk remoto por HTTP desde el dev server de la miniapp (igual que prod, pero a `localhost`) |
+| Fast Refresh | **host + miniapp juntos** (el loop más ajustado) | dentro de la miniapp (editás → rebuildea → recargás el host) |
+| ¿Necesita estar en el catálogo? | **No** (ideal para una miniapp nueva) | Sí (aparece en el catálogo; el host redirige su resolución a tu dev server) |
+| Prueba la federación real (boundary MF, resolve, integridad) | No | **Sí** |
+
+### Modo 1 — UNA miniapp, Fast Refresh instantáneo
+
+El host importa **directo** el `Entry` de una miniapp clonada al lado y la renderiza con
+un grant mock (de las capabilities de su `manifest.json`). Como es código del bundle del
+host, editar la miniapp da **Fast Refresh instantáneo**.
+
+```bash
+# Terminal A — host dev server, apuntando a tu miniapp clonada al lado
+export BACKSTAGE_URL=https://backstage-web-blond.vercel.app
+DEV_MINIAPP_PATH=/Volumes/SSDExterno/prodproyects/miniapp-hellow_widget \
+  pnpm --filter @app/host start
+
+# Terminal B — build + install
+pnpm --filter @app/host android      # o: pnpm --filter @app/host ios
+```
+
+- En la app, entrá a la pantalla **"▶ Dev Mount"** (en el Home) → monta la miniapp de
+  `DEV_MINIAPP_PATH`. Editá su `src/…` → refresco al instante.
+- Sin `DEV_MINIAPP_PATH`, "Dev Mount" muestra un placeholder (y en release ni se registra).
+- **Límite:** no prueba la federación. Y solo anda limpio si la miniapp usa las deps
+  **compartidas** (ui-kit, react-native, react); si agregó deps propias, instalalas también
+  en el host o usá el Modo 2.
+
+### Modo 2 — UNA o VARIAS miniapps (federadas)
+
+Cada miniapp corre **su propio dev server** en un puerto distinto; el host las rutea por
+id. El host baja el container **vivo**; editás → rebuildea → **RR** (recargar) en el host
+trae el fresco.
+
+**Una sola miniapp:**
+
+```bash
+# Terminal A — dev server de la miniapp (:9000 por default)
+cd /Volumes/SSDExterno/prodproyects/miniapp-hellow_widget && pnpm start
+
+# Terminal B — host, mapeando el id a su dev server
+export BACKSTAGE_URL=https://backstage-web-blond.vercel.app
+DEV_REMOTES="hellow_widget=http://localhost:9000" \
+  pnpm --filter @app/host start
+
+# Terminal C — build + install (+ reenviar el puerto al emulador, ver abajo)
+adb reverse tcp:9000 tcp:9000
+pnpm --filter @app/host android
+```
+
+**Varias miniapps a la vez** — cada una en **su propio puerto**:
+
+```bash
+# Terminal A — miniapp 1 (:9000 por default)
+cd /Volumes/SSDExterno/prodproyects/miniapp-hellow_widget && pnpm start
+
+# Terminal B — miniapp 2 (otro puerto, para no chocar con :9000)
+cd /Volumes/SSDExterno/prodproyects/miniapp-cards_wallet && \
+  pnpm exec react-native webpack-start --port 9001
+
+# Terminal C — miniapp 3 (otro puerto más)
+cd /Volumes/SSDExterno/prodproyects/miniapp-account-dashboard && \
+  pnpm exec react-native webpack-start --port 9002
+
+# Terminal D — host, mapeando cada id a su dev server
+export BACKSTAGE_URL=https://backstage-web-blond.vercel.app
+DEV_REMOTES="hellow_widget=http://localhost:9000,\
+cards_wallet=http://localhost:9001,\
+account_dashboard=http://localhost:9002" \
+  pnpm --filter @app/host start
+
+# Terminal E — reenviar cada puerto al emulador + instalar
+adb reverse tcp:9000 tcp:9000
+adb reverse tcp:9001 tcp:9001
+adb reverse tcp:9002 tcp:9002
+pnpm --filter @app/host android
+```
+
+- **Formato:** `DEV_REMOTES="id1=url1,id2=url2,…"`. Los **ids deben coincidir con los del
+  catálogo**. Solo esos ids saltan Backstage y van al dev server (con integridad desactivada
+  **solo** para ellos, bajo `__DEV__`).
+- **Mezclar:** las miniapps que **no** estén en `DEV_REMOTES` se resuelven normal (chunk
+  publicado) → podés tener unas vivas-desde-dev-server y otras publicadas al mismo tiempo.
+- **Puertos:** el `pnpm start` de una miniapp usa `:9000` por default; para la 2ª, 3ª, …
+  usá `pnpm exec react-native webpack-start --port 900N`.
+- En **release**, `DEV_REMOTES` no se setea → el host resuelve/verifica todo normal.
+
+### Red — emulador / Simulador / device (Modo 2)
+
+En el **emulador Android**, `localhost` es el emulador, no tu Mac → los dev servers
+(`:900N`) no se alcanzan solos. Dos opciones:
+
+```bash
+# a) reenviar cada puerto (recomendado: mantenés las URLs con localhost)
+adb reverse tcp:9000 tcp:9000
+adb reverse tcp:9001 tcp:9001
+# (+ tcp:8081 del host si hiciera falta, y tcp:3999 si además usás Backstage local)
+
+# b) o usar la IP del host del emulador en DEV_REMOTES:
+#    DEV_REMOTES="hellow_widget=http://10.0.2.2:9000,…"
+```
+
+- **iOS Simulator:** `localhost` apunta a tu Mac → **no** hace falta `adb reverse` ni el
+  port-forward. Los `:900N` funcionan directo.
+- **iPhone real:** `localhost` es el teléfono → usá la **IP LAN de tu Mac** en las URLs de
+  `DEV_REMOTES` (`http://192.168.x.x:9000`), no `localhost`.
+
+### Qué modo para qué tarea
+
+| Tarea | Modo |
+|---|---|
+| Construir/ajustar la UI de una miniapp (lo más frecuente) | **1** (Fast Refresh) |
+| Miniapp nueva, todavía sin publicar en el catálogo | **1** |
+| Probar que monta como remoto federado (boundary MF, capabilities) | **2** |
+| Desarrollar **varias** miniapps juntas | **2** (multi-puerto) |
+| Release / integridad / versionado real | build → publish (ver [`../../docs`](https://github.com/DentVega/backstage-web/blob/main/docs/LOCAL-DEV.md) en backstage-web) |
+
+---
+
 ## Gotchas
 
 - **Catálogo vacío** → `BACKSTAGE_URL` sin setear (cayó a `localhost`). Confirmala en la
