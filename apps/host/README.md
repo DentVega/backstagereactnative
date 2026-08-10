@@ -1,79 +1,116 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# Backstage Host — cómo correr
 
-# Getting Started
+El **host móvil** (React Native + Re.Pack / Module Federation) que descarga y monta las
+miniapps en runtime. El **catálogo** y los **chunks** vienen de Backstage Web; este binario
+no trae las miniapps adentro.
 
->**Note**: Make sure you have completed the [React Native - Environment Setup](https://reactnative.dev/docs/environment-setup) instructions till "Creating a new application" step, before proceeding.
+---
 
-## Step 1: Start the Metro Server
+## Prerequisitos
 
-First, you will need to start **Metro**, the JavaScript _bundler_ that ships _with_ React Native.
+- **Node ≥ 20** y **pnpm 10** (via corepack).
+- Entorno React Native listo:
+  - **Android:** JDK 17 + Android SDK + un emulador (o dispositivo).
+  - **iOS** (opcional): Xcode + CocoaPods.
+  - Si es la primera vez, seguí el *React Native environment setup*.
 
-To start Metro, run the following command from the _root_ of your React Native project:
+## Setup (una vez)
 
-```bash
-# using npm
-npm start
-
-# OR using Yarn
-yarn start
-```
-
-## Step 2: Start your Application
-
-Let Metro Bundler run in its _own_ terminal. Open a _new_ terminal from the _root_ of your React Native project. Run the following command to start your _Android_ or _iOS_ app:
-
-### For Android
+Desde la **raíz del repo**:
 
 ```bash
-# using npm
-npm run android
-
-# OR using Yarn
-yarn android
+pnpm install
+pnpm build:packages    # compila host-runtime, ui-kit, miniapp-contract (dist)
 ```
 
-### For iOS
+---
+
+## Configuración — variables de entorno
+
+Re.Pack **hornea estas vars en el bundle en build-time** (via `DefinePlugin`). **No hay
+`.env`** — se setean en el **shell** antes de correr.
+
+| Var | Qué hace | Default |
+|---|---|---|
+| **`BACKSTAGE_URL`** | **La clave.** URL de Backstage de donde salen el catálogo (`/api/miniapps`) y el resolve. **Sin esto, el catálogo NO carga.** | `http://localhost:3999` |
+| `DEV_MINIAPP_PATH` | *(opcional)* path a una miniapp local para el dev-loop (mount local con Fast Refresh). | — |
+| `DEV_REMOTES` | *(opcional)* remotes federados para el dev-loop de miniapps. | — |
+
+Backstage de producción:
 
 ```bash
-# using npm
-npm run ios
-
-# OR using Yarn
-yarn ios
+export BACKSTAGE_URL=https://backstage-web-blond.vercel.app
 ```
 
-If everything is set up _correctly_, you should see your new app running in your _Android Emulator_ or _iOS Simulator_ shortly provided you have set up your emulator/simulator correctly.
+> **Build-time, no runtime:** si cambiás `BACKSTAGE_URL`, tenés que **reiniciar el dev
+> server** (o re-buildear el release) — un reload de JS no alcanza, ya quedó horneada.
 
-This is one way to run your app — you can also run it directly from within Android Studio and Xcode respectively.
+---
 
-## Step 3: Modifying your App
+## Modo DEV
 
-Now that you have successfully run the app, let's modify it.
+Dos terminales. **La `BACKSTAGE_URL` va en la del dev server** (es la que construye el JS):
 
-1. Open `App.tsx` in your text editor of choice and edit some lines.
-2. For **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Developer Menu** (<kbd>Ctrl</kbd> + <kbd>M</kbd> (on Window and Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (on macOS)) to see your changes!
+```bash
+# Terminal A — dev server (Re.Pack, reemplaza a Metro)
+export BACKSTAGE_URL=https://backstage-web-blond.vercel.app
+cd apps/host && pnpm start
 
-   For **iOS**: Hit <kbd>Cmd ⌘</kbd> + <kbd>R</kbd> in your iOS Simulator to reload the app and see your changes!
+# Terminal B — build + install en el emulador/dispositivo
+cd apps/host && pnpm android      # Android
+# cd apps/host && pnpm ios        # iOS (corré `pod install` en ios/ la 1ª vez)
+```
 
-## Congratulations! :tada:
+- **Emulador Android:** `emulator -avd Pixel_10_Pro_XL &` (o desde Android Studio → Device Manager) antes del paso B.
+- **Recargar el JS** tras cambios: tecleá `r` + Enter en la **Terminal A** (o `Cmd+M` → *Reload* en el emulador).
+- Ya instalada la app, para ver cambios de JS **no hace falta** repetir el paso B: alcanza con recargar.
 
-You've successfully run and modified your React Native App. :partying_face:
+---
 
-### Now what?
+## Modo PROD (release)
 
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [Introduction to React Native](https://reactnative.dev/docs/getting-started).
+El JS se **empaqueta dentro del binario** (no hay dev server en prod). `BACKSTAGE_URL`
+también se hornea acá → **setearla antes de buildear**:
 
-# Troubleshooting
+```bash
+export BACKSTAGE_URL=https://backstage-web-blond.vercel.app
 
-If you can't get this to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
+# --- Android ---
+# APK release (gradle invoca el bundle de Re.Pack y lo mete en el binario):
+cd apps/host/android && ./gradlew assembleRelease
+#   → apps/host/android/app/build/outputs/apk/release/
+# AAB para Play Store: ./gradlew bundleRelease
 
-# Learn More
+# --- iOS ---
+# Build Release desde Xcode (scheme Release) o:
+cd apps/host && pnpm ios --mode Release
+```
 
-To learn more about React Native, take a look at the following resources:
+> Verificá que `BACKSTAGE_URL` apunte a la Backstage **de prod** ANTES de buildear: queda
+> fija en el binario. Un binario release apuntando a `localhost` no carga el catálogo.
+>
+> *(Si solo querés regenerar el bundle JS de release: `pnpm bundle:android`.)*
 
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+---
+
+## Troubleshooting
+
+- **El catálogo no carga / aparece vacío** → casi siempre `BACKSTAGE_URL` sin setear (cayó a
+  `localhost:3999`). Confirmá la var en la **Terminal A** y **reiniciá el dev server**.
+- **Cambios de JS que no aparecen / bundler raro** → cortá la Terminal A y
+  `pnpm start --reset-cache`, después reload.
+- **El dev server no conecta con el emulador** → `adb reverse tcp:8081 tcp:8081` (8081 es el
+  puerto por defecto del dev server).
+
+---
+
+## Dev-loop de miniapps (opcional)
+
+Para desarrollar una miniapp contra este host **sin publicarla**:
+
+- **Modo 1 — mount local (Fast Refresh):**
+  ```bash
+  DEV_MINIAPP_PATH=/ruta/a/tu/miniapp BACKSTAGE_URL=… pnpm start
+  ```
+  Se monta vía el alias `@dev-miniapp` (ver `rspack.config.mjs`).
+- **Modo 2 — remotes federados:** `DEV_REMOTES=…` (ver `rspack.config.mjs`).
