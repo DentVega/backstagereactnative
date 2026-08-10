@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
+import { Platform } from "react-native";
 import type { MiniappId, SemVer } from "@dentvega/miniapp-contract";
 import {
   initialLoaderState,
@@ -72,7 +73,11 @@ export function useMiniapp(deps: UseMiniappDeps): UseMiniappResult {
         let component: EntryComponent | null = null;
         let mountVersion: string | undefined;
         try {
-          const resolved = await resolveClient.resolve({ id, version: deps.resolveVersion as SemVer | undefined });
+          const resolved = await resolveClient.resolve({
+            id,
+            version: deps.resolveVersion as SemVer | undefined,
+            platform: Platform.OS === "ios" ? "ios" : "android",
+          });
           if (cancelled.current) return;
           mountVersion = resolved.version;
 

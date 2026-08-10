@@ -36,7 +36,7 @@ export function devResolveClient(
       return {
         id,
         version: '0.0.0' as ResolveResponse['version'],
-        url: `${devUrl.replace(/\/+$/, '')}/${id}.container.js.bundle?platform=android`,
+        url: `${devUrl.replace(/\/+$/, '')}/${id}.container.js.bundle?platform=${request.platform ?? 'android'}`,
         manifest: {
           id,
           version: '0.0.0' as ResolveResponse['version'],

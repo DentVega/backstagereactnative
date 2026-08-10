@@ -57,6 +57,8 @@ export interface ResolveRequest {
   readonly hostVersion?: SemVer;
   /** Versión exacta a resolver (la que el catálogo sirve). Habilita el cache por-versión. */
   readonly version?: SemVer;
+  /** Plataforma del host ("ios"/"android") — el registry sirve el chunk correcto. */
+  readonly platform?: "ios" | "android";
 }
 
 /** Backstage → host resolve response. */
