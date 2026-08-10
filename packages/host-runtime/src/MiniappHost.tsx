@@ -4,6 +4,7 @@ import { AppText, Box, Button, useTheme } from "@dentvega/ui-kit";
 import type { CapabilityGrant, MiniappId } from "@dentvega/miniapp-contract";
 import { useMiniapp } from "./useMiniapp";
 import type { ResolveClient } from "./ResolveClient";
+import type { MetricsClient } from "./MetricsClient";
 import type { ChunkLoader } from "./ChunkLoader";
 import type { HostProvided } from "./evaluate";
 import type { IntegrityVerifier } from "./integrity";
@@ -22,6 +23,8 @@ export interface MiniappHostProps {
   hostContractVersion?: string;
   /** Versión servida (del catálogo) — habilita el cache por-versión del resolve. */
   resolveVersion?: string;
+  /** Telemetría de runtime (best-effort). */
+  metrics?: MetricsClient;
 }
 
 const FALLBACK_COPY: Record<FallbackReason, string> = {
@@ -44,6 +47,7 @@ export function MiniappHost(props: MiniappHostProps): React.JSX.Element {
     retry: props.retry,
     hostContractVersion: props.hostContractVersion,
     resolveVersion: props.resolveVersion,
+    metrics: props.metrics,
   });
 
   if (state.status === "fallback") {

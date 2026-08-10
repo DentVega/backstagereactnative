@@ -11,6 +11,7 @@ import type {
 } from '@dentvega/miniapp-contract';
 import {MiniappHost} from '../MiniappHost';
 import type {ResolveClient} from '../ResolveClient';
+import type {MetricsClient, MetricEvent} from '../MetricsClient';
 import type {ChunkLoader, EntryComponent} from '../ChunkLoader';
 import type {HostProvided} from '../evaluate';
 
@@ -64,7 +65,16 @@ const FakeEntry: EntryComponent = ({capabilities}) => (
 
 const mockChunk: ChunkLoader = {load: async () => FakeEntry};
 
-function renderHost(client: ResolveClient, loader: ChunkLoader = mockChunk) {
+function recordingMetrics(): {client: MetricsClient; events: MetricEvent[]} {
+  const events: MetricEvent[] = [];
+  return {client: {track: e => events.push(e)}, events};
+}
+
+function renderHost(
+  client: ResolveClient,
+  loader: ChunkLoader = mockChunk,
+  metrics?: MetricsClient,
+) {
   render(
     <ThemeProvider scheme="light">
       <MiniappHost
@@ -73,6 +83,7 @@ function renderHost(client: ResolveClient, loader: ChunkLoader = mockChunk) {
         chunkLoader={loader}
         hostProvided={hostProvided}
         capabilities={grant}
+        metrics={metrics}
       />
     </ThemeProvider>,
   );
@@ -113,6 +124,23 @@ describe('MiniappHost', () => {
     };
     renderHost(mockResolve(resolvedWith(manifest(compatibleShared))), failingLoader);
     expect(await screen.findByText(/No pudimos descargar/)).toBeOnTheScreen();
+  });
+
+  it('reporta un mount a métricas en el happy path', async () => {
+    const m = recordingMetrics();
+    renderHost(mockResolve(resolvedWith(manifest(compatibleShared))), mockChunk, m.client);
+    await screen.findByText(/montada:/);
+    expect(m.events).toContainEqual({type: 'mount', id: ID, version: '0.1.0'});
+  });
+
+  it('reporta un fallback a métricas con la razón', async () => {
+    const m = recordingMetrics();
+    const skewed = manifest([
+      {name: 'react-native', requiredRange: '^0.80.0', singleton: true},
+    ]);
+    renderHost(mockResolve(resolvedWith(skewed)), mockChunk, m.client);
+    await screen.findByText(/no es compatible/);
+    expect(m.events).toContainEqual({type: 'fallback', id: ID, reason: 'skew'});
   });
 });
 
