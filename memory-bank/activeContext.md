@@ -35,13 +35,13 @@
 - ⚠️ La miniapp se sirve como **build estático** (`bundle:android` → `build/generated/android`), NO el dev server webpack-start (exige `?platform` y rompe la carga como remote). En prod = artefacto estático en Blob (mismo modelo).
 - ✅ Contrato publicado como `@dentvega/miniapp-contract` + `@dentvega/ui-kit` en GitHub Packages; los 4 repos usan el scope `@dentvega`; backstage-web consume el publicado (sin `vendor/`). **Nota:** builds/instalación (local + Vercel) requieren `GITHUB_TOKEN` con `read:packages`.
 - ✅ RESUELTOS esta sesión: build nativo (JDK), Layer 2 on-device, integridad de chunk (sha256), registry store (Upstash), CDN de chunks (Blob), deploy (Vercel).
-- iOS: `pod install` probablemente desbloqueado (CocoaPods 1.16.2 presente) — no verificado en device iOS todavía.
+- ✅ iOS verificado end-to-end: Simulador y **iPhone real** (firmado en Xcode), mount de miniapp (hellow_widget) confirmado en device.
 
 ## Intent 02 (miniapp-platform) — MVP COMPLETO (4/4 bolts) ✅
 - B1 Publicar paquetes (ui-kit→dist + publishConfig) ✓ · B2 Template GitHub (miniapp-template, remote compila) ✓ · B3 Migrar account-dashboard a repo propio (monorepo sin miniapps/*) ✓ · B4 Scaffolder Backstage (GitProvider + /api/scaffold + /create, 37 tests) ✓.
 - **4 repos separados:** móvil (host), `backstage-web`, `miniapp-template`, `miniapp-account-dashboard`.
 - **Pendiente para producción real:** dar el **org de GitHub real** (reemplazar `@org` placeholder) → publicar paquetes + probar scaffold/creación real. Diferido a **Intent 03**: CI por miniapp (delta 5) + CDN de chunks (delta 6).
-- **Sigue bloqueado (independiente):** build nativo del host (entorno Android) — impide correr la app en device.
+- ✅ **Resuelto (ver `## Current Focus`):** build nativo del host — corre en device Android e iOS.
 
 ## Aclaración de arquitectura (2026-07-09) — plataforma real de miniapps
 El usuario aclaró la visión objetivo (ver `standards/system-architecture.md`, "Three-plane architecture"):
@@ -75,6 +75,6 @@ El usuario aclaró la visión objetivo (ver `standards/system-architecture.md`, 
 ## Immediate Next Step
 - **Intent 04 cerrado + demo en vivo.** Siguiente de mayor retorno para el showcase: READMEs con capturas/GIF + diagrama de arquitectura en los 4 repos; documentar un "demo flow" de 1 min.
 - **Intent 04 cerrado.** Opciones: `/reflect` (retrospectiva del intent 04), `/operations` (deploy Backstage a Vercel + activar OAuth/CDN/CI reales), o `/aidlc-inception` (nuevo intent). Sigue pendiente independiente: build nativo del host (entorno Android).
-- **Build nativo — en progreso (Operations):** 3 blockers resueltos (gradle-plugin devDeps en host, NDK 26.1 reparado, flash-list/screens pineados; autolinking OK). **Falta 1:** `MissingValueException` en `:app:compileDebugJavaWithJavac` (New Arch RN 0.76, no pnpm) — diagnósticos en `operations/activation-checklist.md` (bisecar módulos nativos / `--debug` / setear `react{reactNativeDir}`). Luego iOS `pod install` + montaje en dispositivo (device Android conectado).
+- ✅ **Build nativo — resuelto (Operations):** 3 blockers resueltos (gradle-plugin devDeps en host, NDK 26.1 reparado, flash-list/screens pineados; autolinking OK), más el `MissingValueException` en `:app:compileDebugJavaWithJavac` (diagnósticos históricos en `operations/activation-checklist.md`). iOS `pod install` + montaje en dispositivo también verificados (Simulador + iPhone real).
 - Alternativas: **`/parity`** (cobertura vs. app Android original), o **`/aidlc-inception`** (siguiente intent: transferencias, etc.).
 - Recordatorios: `IntegrityVerifier` no-op (cripto antes de prod); Backstage sin auth/CDN; contrato aún `file:`.

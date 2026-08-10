@@ -58,12 +58,26 @@ cd apps/host && pnpm start
 
 # Terminal B — build + install en el emulador/dispositivo
 cd apps/host && pnpm android      # Android
-# cd apps/host && pnpm ios        # iOS (corré `pod install` en ios/ la 1ª vez)
+# cd apps/host && pnpm ios        # iOS Simulador (corré `pod install` en ios/ la 1ª vez)
 ```
 
 - **Emulador Android:** `emulator -avd Pixel_10_Pro_XL &` (o desde Android Studio → Device Manager) antes del paso B.
 - **Recargar el JS** tras cambios: tecleá `r` + Enter en la **Terminal A** (o `Cmd+M` → *Reload* en el emulador).
 - Ya instalada la app, para ver cambios de JS **no hace falta** repetir el paso B: alcanza con recargar.
+
+### iOS — iPhone real
+
+Además del Simulador (`pnpm ios` arriba), el host corre en un **iPhone físico**:
+
+1. `pod install` en `apps/host/ios/` si no lo corriste todavía.
+2. Abrí `apps/host/ios/host.xcworkspace` en Xcode (no el `.xcodeproj`).
+3. Target **host** → tab **Signing & Capabilities** → seteá tu **Team** y un
+   **Bundle Identifier** propio (el de free-provisioning sirve para dev).
+4. Conectá el iPhone por cable (o Wi-Fi debugging), seleccionalo como destino y
+   **Run** desde Xcode.
+5. ATS ya está resuelto para prod (Backstage en R2/Vercel = HTTPS) y para dev
+   (`NSAllowsLocalNetworking=true` cubre el dev server local); no hace falta tocar
+   `Info.plist`.
 
 ---
 
@@ -89,7 +103,9 @@ cd apps/host && pnpm ios --mode Release
 > Verificá que `BACKSTAGE_URL` apunte a la Backstage **de prod** ANTES de buildear: queda
 > fija en el binario. Un binario release apuntando a `localhost` no carga el catálogo.
 >
-> *(Si solo querés regenerar el bundle JS de release: `pnpm bundle:android`.)*
+> *(Si solo querés regenerar el bundle JS de release Android: `pnpm bundle:android`.
+> En iOS no hace falta un script aparte: el build Release de Xcode ya regenera el
+> bundle solo, vía el Build Phase "Bundle React Native code and images".)*
 
 ---
 
