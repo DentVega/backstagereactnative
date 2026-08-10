@@ -134,6 +134,7 @@ export function HomeScreen({navigation}: Props): React.JSX.Element {
                 navigation.navigate('Miniapp', {
                   id: item.id as MiniappId,
                   title: item.name,
+                  servedVersion: item.servedVersion ?? item.latestVersion ?? undefined,
                 })
               }
             />

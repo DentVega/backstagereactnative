@@ -6,6 +6,7 @@ import {
   MiniappHost,
   createScopedGrant,
   httpResolveClient,
+  cachingResolveClient,
   sha256Verifier,
   noopVerifier,
   parseDevRemotes,
@@ -23,14 +24,17 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Miniapp'>;
 // server (no integrity). In release, __DEV_REMOTES__ is '' → empty map → the
 // real HTTP client + sha256 verifier, unchanged.
 const devRemotes = __DEV__ ? parseDevRemotes(__DEV_REMOTES__) : {};
-const resolveClient = __DEV__
-  ? devResolveClient(BACKSTAGE_BASE_URL, devRemotes)
-  : httpResolveClient(BACKSTAGE_BASE_URL);
+// Cache in-memory por-versión (singleton de módulo → persiste entre mounts de la sesión).
+const resolveClient = cachingResolveClient(
+  __DEV__
+    ? devResolveClient(BACKSTAGE_BASE_URL, devRemotes)
+    : httpResolveClient(BACKSTAGE_BASE_URL),
+);
 const integrityVerifier = sha256Verifier();
 
 export function MiniappScreen({route}: Props): React.JSX.Element {
   const theme = useTheme();
-  const {id} = route.params;
+  const {id, servedVersion} = route.params;
   const isAuthenticated = useSession((s) => s.isAuthenticated);
 
   // Scoped, revocable grant derived from the host session — never the raw token.
@@ -47,6 +51,7 @@ export function MiniappScreen({route}: Props): React.JSX.Element {
         chunkLoader={repackChunkLoader}
         hostProvided={HOST_PROVIDED}
         hostContractVersion={HOST_CONTRACT_VERSION}
+        resolveVersion={servedVersion}
         capabilities={grant}
         integrity={isDevRemote(id, devRemotes) ? noopVerifier : integrityVerifier}
       />

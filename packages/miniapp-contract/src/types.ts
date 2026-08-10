@@ -55,6 +55,8 @@ export interface Manifest {
 export interface ResolveRequest {
   readonly id: MiniappId;
   readonly hostVersion?: SemVer;
+  /** Versión exacta a resolver (la que el catálogo sirve). Habilita el cache por-versión. */
+  readonly version?: SemVer;
 }
 
 /** Backstage → host resolve response. */
