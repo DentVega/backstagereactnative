@@ -4,6 +4,11 @@ import { createRequire } from 'node:module';
 import * as Repack from '@callstack/repack';
 import rspack from '@rspack/core';
 import { SHARED_DEPS, CONTRACT_VERSION, buildMfShared } from './shared-deps.mjs';
+import {
+  MAX_DEV_MINIAPPS,
+  parseDevMiniappPaths,
+  devMiniappName,
+} from './scripts/dev-miniapps.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -15,22 +20,34 @@ const require = createRequire(import.meta.url);
 // Resolve the real installed version so each eager share is provided correctly.
 const pkgVersion = (name) => require(`${name}/package.json`).version;
 
-// Dev-mount (Mode 1): resolve @dev-miniapp to a local miniapp's Entry when
-// DEV_MINIAPP_PATH is set, else a harmless placeholder. Read its declared
-// capabilities so the dev grant satisfies the Entry gate.
-const devMiniappPath = process.env.DEV_MINIAPP_PATH;
-const devMiniappEntry = devMiniappPath
-  ? path.resolve(devMiniappPath, 'src/Entry')
-  : path.resolve(__dirname, 'src/dev/NoMiniapp');
-let devMiniappCaps = [];
-if (devMiniappPath) {
-  try {
-    devMiniappCaps =
-      require(path.resolve(devMiniappPath, 'manifest.json')).capabilities ?? [];
-  } catch {
-    devMiniappCaps = [];
-  }
+// Dev-mount (Mode 1): alias @dev-miniapp-0..N-1 to local miniapps' `src/Entry`
+// (empty slots → the NoMiniapp placeholder). Reads DEV_MINIAPP_PATHS (CSV) or the
+// legacy single DEV_MINIAPP_PATH. Each active slot's {name, capabilities} (from
+// its manifest.json) is injected as __DEV_MINIAPPS__ for the Dev Mount picker.
+const devMiniappPaths = parseDevMiniappPaths(
+  process.env.DEV_MINIAPP_PATHS,
+  process.env.DEV_MINIAPP_PATH,
+);
+const noMiniappEntry = path.resolve(__dirname, 'src/dev/NoMiniapp');
+const devMiniappAliases = {};
+for (let i = 0; i < MAX_DEV_MINIAPPS; i++) {
+  const p = devMiniappPaths[i];
+  devMiniappAliases[`@dev-miniapp-${i}`] = p
+    ? path.resolve(p, 'src/Entry')
+    : noMiniappEntry;
 }
+const devMiniapps = devMiniappPaths.map((p) => {
+  let name = devMiniappName(p);
+  let capabilities = [];
+  try {
+    const manifest = require(path.resolve(p, 'manifest.json'));
+    if (typeof manifest.id === 'string' && manifest.id) name = manifest.id;
+    capabilities = manifest.capabilities ?? [];
+  } catch {
+    // path or manifest missing → keep the basename name + no caps
+  }
+  return { name, capabilities };
+});
 
 /**
  * Rspack configuration enhanced with Re.Pack defaults for React Native.
@@ -45,7 +62,7 @@ export default Repack.defineRspackConfig({
   resolve: {
     ...Repack.getResolveOptions(),
     alias: {
-      '@dev-miniapp': devMiniappEntry,
+      ...devMiniappAliases,
     },
   },
   module: {
@@ -69,7 +86,7 @@ export default Repack.defineRspackConfig({
       __BACKSTAGE_URL__: JSON.stringify(
         process.env.BACKSTAGE_URL ?? 'http://localhost:3999',
       ),
-      __DEV_MINIAPP_CAPS__: JSON.stringify(devMiniappCaps),
+      __DEV_MINIAPPS__: JSON.stringify(devMiniapps),
       __DEV_REMOTES__: JSON.stringify(process.env.DEV_REMOTES ?? ''),
       // contractVersion del host (fuente única shared-deps.mjs) → guard host-too-old.
       __HOST_CONTRACT_VERSION__: JSON.stringify(CONTRACT_VERSION),
