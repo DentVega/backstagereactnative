@@ -1,4 +1,4 @@
-import {chunkBaseAndQuery, remoteChunkUrl} from './chunkUrls';
+import {chunkBaseAndQuery, remoteChunkUrl, isDevServerUrl} from './chunkUrls';
 
 describe('chunkBaseAndQuery', () => {
   it('published container (no query) → base dir, empty query', () => {
@@ -36,5 +36,19 @@ describe('remoteChunkUrl', () => {
     expect(remoteChunkUrl(base, '__federation_expose_Entry', query)).toBe(
       'https://cdn.example/acc/1.2.0/__federation_expose_Entry.chunk.bundle',
     );
+  });
+});
+
+describe('isDevServerUrl', () => {
+  it('dev-server url (has query) → true → will bypass cache', () => {
+    expect(
+      isDevServerUrl('http://localhost:9000/hellow_widget.container.js.bundle?platform=android'),
+    ).toBe(true);
+  });
+
+  it('published url (no query) → false → keeps default cache', () => {
+    expect(
+      isDevServerUrl('https://cdn.example/acc/1.2.0/acc.container.js.bundle'),
+    ).toBe(false);
   });
 });

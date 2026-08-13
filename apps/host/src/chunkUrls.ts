@@ -29,3 +29,14 @@ export function remoteChunkUrl(
 ): string {
   return `${base}${scriptId}.chunk.bundle${query}`;
 }
+
+/**
+ * A resolved URL points at the miniapp DEV server (dev-loop Mode 2) iff it carries
+ * a query string — published chunks (R2 / Backstage) never do. Dev-server scripts
+ * must load with `cache: false` so each app reload refetches fresh code; otherwise
+ * Re.Pack serves the on-disk cached bundle (default `cache: true`) and edits never
+ * show up, even after a reload.
+ */
+export function isDevServerUrl(url: string): boolean {
+  return url.includes('?');
+}

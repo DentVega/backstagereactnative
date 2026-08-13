@@ -1,7 +1,7 @@
 import {ScriptManager, Script} from '@callstack/repack/client';
 import type {ChunkLoader, EntryComponent} from '@dentvega/host-runtime';
 import type {ResolveResponse} from '@dentvega/miniapp-contract';
-import {chunkBaseAndQuery, remoteChunkUrl} from './chunkUrls';
+import {chunkBaseAndQuery, remoteChunkUrl, isDevServerUrl} from './chunkUrls';
 
 /**
  * The Module Federation v2 runtime instance, reached through the global it
@@ -58,16 +58,24 @@ export function setupScriptManager(): void {
     // chunk extension (default getRemoteURL runs them through webpackContext.u(),
     // which tacks on an extension → `…bundle.javascript` → 404).
     const asIs = {excludeExtension: true};
-    // 1. Remote container entry.
+    // 1. Remote container entry. Dev-server containers (with a query) skip the
+    //    on-disk cache so each reload refetches fresh code.
     const containerUrl = resolvedUrls.get(scriptId);
     if (containerUrl !== undefined) {
-      return {url: Script.getRemoteURL(containerUrl, asIs)};
+      return {
+        url: Script.getRemoteURL(containerUrl, asIs),
+        ...(isDevServerUrl(containerUrl) ? {cache: false} : {}),
+      };
     }
     // 2. A remote's own split chunk (caller is the remote container name).
+    //    Same cache rule: a non-empty query means it's a live dev-server chunk.
     if (caller !== undefined && resolvedBases.has(caller)) {
       const base = resolvedBases.get(caller)!;
       const query = resolvedQueries.get(caller) ?? '';
-      return {url: Script.getRemoteURL(remoteChunkUrl(base, scriptId, query), asIs)};
+      return {
+        url: Script.getRemoteURL(remoteChunkUrl(base, scriptId, query), asIs),
+        ...(query ? {cache: false} : {}),
+      };
     }
     // 3. Host-local chunk.
     return {
