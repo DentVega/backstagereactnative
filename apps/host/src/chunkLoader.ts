@@ -1,6 +1,7 @@
 import {ScriptManager, Script} from '@callstack/repack/client';
 import type {ChunkLoader, EntryComponent} from '@dentvega/host-runtime';
 import type {ResolveResponse} from '@dentvega/miniapp-contract';
+import {chunkBaseAndQuery, remoteChunkUrl} from './chunkUrls';
 
 /**
  * The Module Federation v2 runtime instance, reached through the global it
@@ -34,9 +35,11 @@ function getFederationHost(): MFInstance | undefined {
  * exposed `./Entry`. Isolated so the loader logic stays testable.
  */
 
-// container name → resolved container URL, and → base URL (dir) for its chunks.
+// container name → resolved container URL, → base URL (dir) for its chunks, and
+// → the query the chunks must carry (dev server needs `?platform=…`; published none).
 const resolvedUrls = new Map<string, string>();
 const resolvedBases = new Map<string, string>();
+const resolvedQueries = new Map<string, string>();
 let resolverRegistered = false;
 
 /**
@@ -63,7 +66,8 @@ export function setupScriptManager(): void {
     // 2. A remote's own split chunk (caller is the remote container name).
     if (caller !== undefined && resolvedBases.has(caller)) {
       const base = resolvedBases.get(caller)!;
-      return {url: Script.getRemoteURL(`${base}${scriptId}.chunk.bundle`, asIs)};
+      const query = resolvedQueries.get(caller) ?? '';
+      return {url: Script.getRemoteURL(remoteChunkUrl(base, scriptId, query), asIs)};
     }
     // 3. Host-local chunk.
     return {
@@ -80,8 +84,12 @@ export const repackChunkLoader: ChunkLoader = {
     // Generic over any miniapp: the MF container name is the resolved id.
     const name = resolved.id;
     resolvedUrls.set(name, resolved.url);
-    // Base dir the container's own chunks are served from (same dir as container).
-    resolvedBases.set(name, resolved.url.replace(/\/[^/]*$/, '/'));
+    // Base dir the container's own chunks are served from (same dir as container),
+    // plus the query they must carry (`?platform=…` for the dev server; none when
+    // published) — see chunkUrls.ts.
+    const {base, query} = chunkBaseAndQuery(resolved.url);
+    resolvedBases.set(name, base);
+    resolvedQueries.set(name, query);
 
     const host = getFederationHost();
     if (host === undefined) {
