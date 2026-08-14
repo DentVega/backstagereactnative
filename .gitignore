@@ -30,3 +30,7 @@ apps/host/.rspack/
 # local env / secrets (never commit)
 .env*
 !.env.example
+
+# dev orchestrator (pnpm dev) — per-developer config + generated mprocs yaml
+apps/host/dev-miniapps.config.mjs
+apps/host/.mprocs.generated.yaml
