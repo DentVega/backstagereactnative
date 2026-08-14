@@ -186,6 +186,7 @@ test('rspackPoll → RSPACK_POLL en el env del Host; sin él, ausente', () => {
   const withPoll = buildDevPlan([{id: 'm', path: '../m', mode: 'mount'}], abs, {rspackPoll: 1000});
   assert.equal(withPoll.rspackPoll, 1000);
   assert.match(toMprocsYaml(withPoll), /RSPACK_POLL: "1000"/);
+  assert.match(toMprocsYaml(withPoll), /WATCHPACK_POLLING: "1000"/);
   assert.doesNotMatch(toMprocsYaml(buildDevPlan([{id: 'm', path: '../m', mode: 'mount'}], abs)), /RSPACK_POLL/);
 });
 

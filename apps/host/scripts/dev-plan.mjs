@@ -197,7 +197,10 @@ export function toMprocsYaml(plan, { hostFilter = '@app/host' } = {}) {
     L.push(`      BACKSTAGE_URL: ${yq(`http://${net.host}:${bsPort}`)}`);
   }
   if (plan.rspackPoll) {
-    L.push(`      RSPACK_POLL: ${yq(String(plan.rspackPoll))}`); // polling en disco externo
+    // Disco externo: RSPACK_POLL → watchOptions.poll (rspack.config); WATCHPACK_POLLING →
+    // el watcher (watchpack) directo. Ambos por robustez.
+    L.push(`      RSPACK_POLL: ${yq(String(plan.rspackPoll))}`);
+    L.push(`      WATCHPACK_POLLING: ${yq(String(plan.rspackPoll))}`);
   }
   L.push(`    shell: ${yq(`pnpm --filter ${hostFilter} exec react-native start${bind}`)}`);
 
