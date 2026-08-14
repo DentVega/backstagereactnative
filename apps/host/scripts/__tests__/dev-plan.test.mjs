@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {buildDevPlan, toMprocsYaml, MAX_MOUNTS} from '../dev-plan.mjs';
+import {buildDevPlan, toMprocsYaml, checkInstalls, MAX_MOUNTS} from '../dev-plan.mjs';
 
 const abs = (p) => `/ABS/${p}`; // deterministic resolvePath for tests
 
@@ -93,4 +93,48 @@ test('toMprocsYaml wires Host env, adb-reverse and per-remote procs', () => {
   assert.match(yaml, /"cw":/);
   assert.match(yaml, /--port 9000/);
   assert.match(yaml, /"app-android":/);
+});
+
+test('checkInstalls: missing path → error; installed → clean', () => {
+  const exists = (p) => p === '/ABS/../hw' || p === '/ABS/../hw/node_modules';
+  const {errors, warnings} = checkInstalls(
+    [
+      {id: 'hw', path: '../hw', mode: 'mount'}, // installed
+      {id: 'ad', path: '../ad', mode: 'mount'}, // path missing
+    ],
+    abs,
+    exists,
+  );
+  assert.equal(warnings.length, 0);
+  assert.equal(errors.length, 1);
+  assert.equal(errors[0].id, 'ad');
+  assert.match(errors[0].msg, /path no existe/);
+});
+
+test('checkInstalls: mount w/o node_modules → error; remote w/o → warning', () => {
+  // path exists for both; neither has node_modules
+  const exists = (p) => p === '/ABS/../m' || p === '/ABS/../r';
+  const {errors, warnings} = checkInstalls(
+    [
+      {id: 'm', path: '../m', mode: 'mount'},
+      {id: 'r', path: '../r', mode: 'remote', port: 9000},
+    ],
+    abs,
+    exists,
+  );
+  assert.equal(errors.length, 1);
+  assert.equal(errors[0].id, 'm');
+  assert.match(errors[0].msg, /falta node_modules.*pnpm install/);
+  assert.equal(warnings.length, 1);
+  assert.equal(warnings[0].id, 'r');
+});
+
+test('checkInstalls: all installed → nothing', () => {
+  const {errors, warnings} = checkInstalls(
+    [{id: 'hw', path: '../hw', mode: 'mount'}],
+    abs,
+    () => true,
+  );
+  assert.deepEqual(errors, []);
+  assert.deepEqual(warnings, []);
 });

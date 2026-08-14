@@ -9,7 +9,7 @@ import {spawn} from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath, pathToFileURL} from 'node:url';
-import {buildDevPlan, toMprocsYaml} from './dev-plan.mjs';
+import {buildDevPlan, toMprocsYaml, checkInstalls} from './dev-plan.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url)); // apps/host/scripts
 const hostPkg = path.resolve(here, '..'); // apps/host
@@ -32,14 +32,25 @@ async function loadConfig() {
 
 const config = await loadConfig();
 
+const resolvePath = (rel) => path.resolve(hostRoot, rel);
+
 let plan;
 try {
-  plan = buildDevPlan(config, (rel) => path.resolve(hostRoot, rel));
+  plan = buildDevPlan(config, resolvePath);
 } catch (e) {
   console.error(`✗ Config inválida: ${e.message}`);
   process.exit(1);
 }
 for (const w of plan.warnings) console.warn(`⚠ ${w}`);
+
+// Preflight: cada miniapp tiene que estar pnpm install-ada.
+const {errors, warnings} = checkInstalls(config, resolvePath, (p) => fs.existsSync(p));
+for (const w of warnings) console.warn(`⚠ ${w.id}: ${w.msg}`);
+if (errors.length > 0) {
+  console.error('✗ Miniapps sin listo (el dev-mount rompería el bundle del host):');
+  for (const e of errors) console.error(`  • ${e.id}: ${e.msg}`);
+  if (process.env.DEV_DRY !== '1') process.exit(1);
+}
 
 const yaml = toMprocsYaml(plan);
 const yamlPath = path.join(hostPkg, '.mprocs.generated.yaml');
