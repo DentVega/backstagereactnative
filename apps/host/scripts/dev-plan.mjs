@@ -70,6 +70,31 @@ export function buildDevPlan(config, resolvePath) {
   };
 }
 
+/**
+ * Preflight: cada miniapp del config tiene que estar `pnpm install`ada para
+ * montarla/servirla (deps resuelven desde su carpeta). Pura: `exists(path)` chequea
+ * el filesystem. Un mount sin node_modules ROMPE el bundle del host → error; un
+ * remote sin instalar solo falla si prendés su dev server → warning.
+ */
+export function checkInstalls(config, resolvePath, exists) {
+  const errors = [];
+  const warnings = [];
+  for (const m of config) {
+    if (!m || typeof m.id !== 'string' || typeof m.path !== 'string') continue;
+    const cwd = resolvePath(m.path);
+    const mode = m.mode ?? 'mount';
+    if (!exists(cwd)) {
+      errors.push({id: m.id, msg: `path no existe: ${cwd}`});
+      continue;
+    }
+    if (!exists(`${cwd}/node_modules`)) {
+      const item = {id: m.id, msg: `falta node_modules — corré: cd ${m.path} && pnpm install`};
+      (mode === 'mount' ? errors : warnings).push(item);
+    }
+  }
+  return {errors, warnings};
+}
+
 const yq = (s) => `"${String(s).replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
 
 /** Serialize a plan into an mprocs YAML config. */
