@@ -76,7 +76,7 @@ if (wantDevice) {
   }
   net = {host: ip, bindAll: true};
   const bsPort = backstage?.port ?? 3999;
-  console.log(`▶ modo device — IP LAN ${ip}; dev servers en 0.0.0.0`);
+  console.log(`▶ modo device — IP LAN ${ip}; dev servers RN bindeados a ${ip} (Fast Refresh por LAN)`);
   console.log(`  📱 iPhone físico: instalá por Xcode (Debug) y en el menú de dev →`);
   console.log(`     "Debug server host & port for device" → ${ip}:8081`);
   console.log(`     (Backstage queda en ${ip}:${bsPort}; ambos en la misma Wi-Fi.)`);
