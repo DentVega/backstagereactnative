@@ -96,6 +96,58 @@ export function checkInstalls(entries, exists) {
   return {errors, warnings};
 }
 
+/** Próximo puerto libre desde `start`, evitando los ya usados por remotes. Puro. */
+export function nextFreePort(entries, start = 9000) {
+  const used = new Set(entries.filter((e) => Number.isInteger(e.port)).map((e) => e.port));
+  let p = start;
+  while (used.has(p)) p++;
+  return p;
+}
+
+/**
+ * Mergea miniapps detectadas en la config (preserva las existentes; agrega solo las
+ * nuevas por id). `detected` = [{id, path}]; `mode` = 'mount'|'remote' para las nuevas
+ * (remote → puerto auto). Devuelve {merged, added}. Puro.
+ */
+export function mergeMiniapps(existing, detected, {mode = 'mount'} = {}) {
+  const seen = new Set(existing.map((e) => e.id));
+  const merged = [...existing];
+  const added = [];
+  for (const d of detected) {
+    if (seen.has(d.id)) continue;
+    const entry = {id: d.id, path: d.path, mode, autostart: true};
+    if (mode === 'remote') entry.port = nextFreePort(merged);
+    merged.push(entry);
+    seen.add(d.id);
+    added.push(d.id);
+  }
+  return {merged, added};
+}
+
+/** Serializa la config a un módulo `.mjs` (para `pnpm dev:scan --write`). Puro. */
+export function serializeConfig(devMiniapps, backstage) {
+  const one = (e) => {
+    const parts = [
+      `id: ${JSON.stringify(e.id)}`,
+      `path: ${JSON.stringify(e.path)}`,
+      `mode: ${JSON.stringify(e.mode ?? 'mount')}`,
+    ];
+    if (Number.isInteger(e.port)) parts.push(`port: ${e.port}`);
+    parts.push(`autostart: ${e.autostart !== false}`);
+    return `  {${parts.join(', ')}}`;
+  };
+  let out =
+    '// dev-miniapps.config.mjs — generado/actualizado por `pnpm dev:scan`. Editá a mano lo que quieras.\n';
+  out += `export const devMiniapps = [\n${devMiniapps.map(one).join(',\n')}${devMiniapps.length ? ',' : ''}\n];\n`;
+  if (backstage) {
+    const b = [`path: ${JSON.stringify(backstage.path)}`];
+    if (Number.isInteger(backstage.port)) b.push(`port: ${backstage.port}`);
+    b.push(`autostart: ${backstage.autostart !== false}`);
+    out += `\nexport const backstage = {${b.join(', ')}};\n`;
+  }
+  return out;
+}
+
 /** Serials de los devices Android conectados, del output de `adb devices`. Puro. */
 export function parseAdbDevices(output) {
   return String(output)

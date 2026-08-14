@@ -7,6 +7,7 @@
     "ios": "react-native run-ios",
     "start": "react-native start",
     "dev": "node scripts/dev.mjs",
+    "dev:scan": "node scripts/scaffold-config.mjs",
     "bundle:android": "react-native webpack-bundle --platform android --entry-file index.js --bundle-output build/index.android.bundle --dev false",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
