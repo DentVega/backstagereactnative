@@ -27,3 +27,12 @@ export const devMiniapps = [
     autostart: false,
   },
 ];
+
+/**
+ * (Opcional) El control-plane Backstage, para que `pnpm dev` también lo levante y el
+ * Home/catálogo cargue. Borrá este export si lo corrés por tu cuenta.
+ *   path       ruta al repo backstage-web (relativa a la raíz del repo host, o absoluta).
+ *   port       puerto del `next dev` (default 3999 — el host lo espera ahí).
+ *   autostart  si arranca prendido (togglable en el TUI de mprocs).
+ */
+export const backstage = {path: '../backstage-web', port: 3999, autostart: true};
