@@ -60,14 +60,18 @@ export function buildDevPlan(config, resolvePath, opts = {}) {
     mountPaths = mountPaths.slice(0, MAX_MOUNTS);
   }
 
+  // net.host = a dónde apunta el device a los dev servers ('localhost' para emu/sim;
+  // la IP LAN de la Mac para device físico). net.bindAll → dev servers en 0.0.0.0.
+  const net = opts.net ?? {host: 'localhost', bindAll: false};
   const backstagePort = opts.backstage?.port ?? BACKSTAGE_PORT;
   const adbPorts = [...new Set([backstagePort, ...remotes.map((r) => r.port)])];
   return {
     mountPaths,
     remotes,
     backstage: opts.backstage ?? null,
+    net,
     devMiniappPathsEnv: mountPaths.join(','),
-    devRemotesEnv: remotes.map((r) => `${r.id}=http://localhost:${r.port}`).join(','),
+    devRemotesEnv: remotes.map((r) => `${r.id}=http://${net.host}:${r.port}`).join(','),
     adbPorts,
     warnings,
   };
@@ -168,6 +172,9 @@ export function toMprocsYaml(plan, { hostFilter = '@app/host' } = {}) {
   const adb = plan.adbPorts.length
     ? `for s in $(adb devices | awk 'NR>1 && $2=="device"{print $1}'); do ${reverses}; done`
     : 'true';
+  const net = plan.net ?? {host: 'localhost', bindAll: false};
+  const bind = net.bindAll ? ' --host 0.0.0.0' : ''; // dev servers en todas las interfaces (device físico)
+  const bsPort = plan.backstage?.port ?? BACKSTAGE_PORT;
   const L = ['procs:'];
 
   // adb reverse (one-shot): forwards Backstage + every remote port to the device(s).
@@ -177,21 +184,25 @@ export function toMprocsYaml(plan, { hostFilter = '@app/host' } = {}) {
   if (plan.backstage) {
     L.push('  Backstage:', `    autostart: ${plan.backstage.autostart}`);
     L.push(`    cwd: ${yq(plan.backstage.cwd)}`);
-    L.push(`    shell: ${yq(`pnpm exec next dev -p ${plan.backstage.port}`)}`);
+    L.push(`    shell: ${yq(`pnpm exec next dev -p ${plan.backstage.port}${net.bindAll ? ' -H 0.0.0.0' : ''}`)}`);
   }
 
-  // Host Metro/Re.Pack, with the derived env.
+  // Host Metro/Re.Pack, with the derived env. En device físico el bundle apunta a la
+  // IP LAN de la Mac (BACKSTAGE_URL) y Metro escucha en 0.0.0.0.
   L.push('  Host:', '    autostart: true', '    env:');
   L.push(`      DEV_MINIAPP_PATHS: ${yq(plan.devMiniappPathsEnv)}`);
   L.push(`      DEV_REMOTES: ${yq(plan.devRemotesEnv)}`);
-  L.push(`    shell: ${yq(`pnpm --filter ${hostFilter} start`)}`);
+  if (net.host !== 'localhost') {
+    L.push(`      BACKSTAGE_URL: ${yq(`http://${net.host}:${bsPort}`)}`);
+  }
+  L.push(`    shell: ${yq(`pnpm --filter ${hostFilter} exec react-native start${bind}`)}`);
 
   // One dev server per remote miniapp.
   for (const r of plan.remotes) {
     L.push(`  ${yq(r.id)}:`);
     L.push(`    autostart: ${r.autostart}`);
     L.push(`    cwd: ${yq(r.cwd)}`);
-    L.push(`    shell: ${yq(`pnpm exec react-native webpack-start --port ${r.port}`)}`);
+    L.push(`    shell: ${yq(`pnpm exec react-native webpack-start --port ${r.port}${bind}`)}`);
   }
 
   // Install/launch the native app on demand (start it from the TUI when needed).
@@ -200,7 +211,7 @@ export function toMprocsYaml(plan, { hostFilter = '@app/host' } = {}) {
   L.push('  app-android:', '    autostart: false');
   L.push(`    shell: ${yq(`node apps/host/scripts/run-app.mjs android ${hostFilter}`)}`);
   L.push('  app-ios:', '    autostart: false');
-  L.push(`    shell: ${yq(`node apps/host/scripts/run-app.mjs ios ${hostFilter}`)}`);
+  L.push(`    shell: ${yq(`node apps/host/scripts/run-app.mjs ios ${hostFilter}${net.bindAll ? ' --device' : ''}`)}`);
 
   return L.join('\n') + '\n';
 }

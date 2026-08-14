@@ -5,7 +5,7 @@
  * la config de mprocs y la corre. Un comando levanta todo, con autostart/toggle
  * por miniapp. Con DEV_DRY=1 imprime el plan + el YAML y sale (sin arrancar mprocs).
  */
-import {spawn} from 'node:child_process';
+import {spawn, execFileSync} from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath, pathToFileURL} from 'node:url';
@@ -41,9 +41,35 @@ const backstage = backstageCfg
     }
   : null;
 
+function detectLanIp() {
+  for (const iface of ['en0', 'en1']) {
+    try {
+      const ip = execFileSync('ipconfig', ['getifaddr', iface], {encoding: 'utf8'}).trim();
+      if (ip) return ip;
+    } catch {
+      /* iface sin IP */
+    }
+  }
+  return '';
+}
+
+// Modo device físico (iPhone / Android por LAN): dev servers en 0.0.0.0 + IP de la Mac.
+const wantDevice = process.argv.includes('--device');
+let net = {host: 'localhost', bindAll: false};
+if (wantDevice) {
+  const ipArg = process.argv.find((a) => a.startsWith('--ip='))?.slice(5);
+  const ip = ipArg || process.env.DEVICE_IP || detectLanIp();
+  if (!ip) {
+    console.error('✗ Modo device: no detecté la IP LAN. Pasá --ip=<x> o DEVICE_IP=<x>.');
+    process.exit(1);
+  }
+  net = {host: ip, bindAll: true};
+  console.log(`▶ modo device — IP LAN ${ip}; dev servers en 0.0.0.0`);
+}
+
 let plan;
 try {
-  plan = buildDevPlan(config, resolvePath, {backstage});
+  plan = buildDevPlan(config, resolvePath, {backstage, net});
 } catch (e) {
   console.error(`✗ Config inválida: ${e.message}`);
   process.exit(1);
