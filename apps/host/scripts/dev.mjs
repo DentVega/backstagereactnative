@@ -42,7 +42,18 @@ const backstage = backstageCfg
   : null;
 
 function detectLanIp() {
-  for (const iface of ['en0', 'en1']) {
+  // La interfaz de la ruta por default (la que sale a la red) primero — es la
+  // correcta aunque haya varias con IP (Ethernet + Wi-Fi). Fallback a en0/en1/en2.
+  const ifaces = [];
+  try {
+    const def = execFileSync('sh', ['-c', "route get default 2>/dev/null | awk '/interface:/{print $2}'"], {
+      encoding: 'utf8',
+    }).trim();
+    if (def) ifaces.push(def);
+  } catch {
+    /* sin ruta default */
+  }
+  for (const iface of [...ifaces, 'en0', 'en1', 'en2']) {
     try {
       const ip = execFileSync('ipconfig', ['getifaddr', iface], {encoding: 'utf8'}).trim();
       if (ip) return ip;
@@ -64,7 +75,11 @@ if (wantDevice) {
     process.exit(1);
   }
   net = {host: ip, bindAll: true};
+  const bsPort = backstage?.port ?? 3999;
   console.log(`▶ modo device — IP LAN ${ip}; dev servers en 0.0.0.0`);
+  console.log(`  📱 iPhone físico: instalá por Xcode (Debug) y en el menú de dev →`);
+  console.log(`     "Debug server host & port for device" → ${ip}:8081`);
+  console.log(`     (Backstage queda en ${ip}:${bsPort}; ambos en la misma Wi-Fi.)`);
 }
 
 let plan;
