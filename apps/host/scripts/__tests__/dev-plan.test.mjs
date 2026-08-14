@@ -5,6 +5,9 @@ import {
   toMprocsYaml,
   checkInstalls,
   parseAdbDevices,
+  nextFreePort,
+  mergeMiniapps,
+  serializeConfig,
   MAX_MOUNTS,
 } from '../dev-plan.mjs';
 
@@ -111,6 +114,42 @@ test('parseAdbDevices: connected serials, skips header/offline/blank', () => {
 test('parseAdbDevices: none connected → empty', () => {
   assert.deepEqual(parseAdbDevices('List of devices attached\n\n'), []);
   assert.deepEqual(parseAdbDevices(''), []);
+});
+
+test('nextFreePort: skips used ports', () => {
+  assert.equal(nextFreePort([{port: 9000}, {port: 9001}]), 9002);
+  assert.equal(nextFreePort([{port: 9000}, {port: 9002}]), 9001);
+  assert.equal(nextFreePort([]), 9000);
+});
+
+test('mergeMiniapps: adds only new (mount default), preserves existing', () => {
+  const existing = [{id: 'hw', path: '../miniapp-hw', mode: 'mount', autostart: true}];
+  const detected = [
+    {id: 'hw', path: '../miniapp-hw'},
+    {id: 'cw', path: '../miniapp-cw'},
+  ];
+  const {merged, added} = mergeMiniapps(existing, detected);
+  assert.deepEqual(added, ['cw']);
+  assert.equal(merged.length, 2);
+  assert.equal(merged[1].mode, 'mount');
+  assert.equal(merged[1].autostart, true);
+});
+
+test('mergeMiniapps: --remote assigns next free port', () => {
+  const existing = [{id: 'a', path: '../a', mode: 'remote', port: 9000, autostart: true}];
+  const {merged, added} = mergeMiniapps(existing, [{id: 'b', path: '../b'}], {mode: 'remote'});
+  assert.deepEqual(added, ['b']);
+  assert.equal(merged[1].port, 9001);
+});
+
+test('serializeConfig: valid module with entries + backstage', () => {
+  const s = serializeConfig(
+    [{id: 'a', path: '../a', mode: 'remote', port: 9000, autostart: true}],
+    {path: '../backstage-web', port: 3999, autostart: true},
+  );
+  assert.match(s, /export const devMiniapps = \[/);
+  assert.match(s, /id: "a".*mode: "remote".*port: 9000.*autostart: true/);
+  assert.match(s, /export const backstage = \{path: "\.\.\/backstage-web", port: 3999/);
 });
 
 const entry = (id, p, mode) => ({id, path: p, cwd: abs(p), mode});

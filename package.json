@@ -7,6 +7,7 @@
   },
   "scripts": {
     "dev": "pnpm --filter @app/host dev",
+    "dev:scan": "pnpm --filter @app/host dev:scan",
     "typecheck": "pnpm -r --if-present typecheck",
     "test": "pnpm -r --if-present test",
     "build:packages": "pnpm -r --filter \"./packages/**\" --if-present build"
