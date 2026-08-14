@@ -101,6 +101,19 @@ export function checkInstalls(entries, exists) {
   return {errors, warnings};
 }
 
+/**
+ * IP LAN para modo device físico, por precedencia (de más a menos explícito):
+ *   --ip=<x>  >  DEVICE_IP=<x>  >  config.device.ip  >  '' (el caller cae a auto-detect).
+ * Recorta strings y descarta vacíos. Puro (la auto-detección vive en dev.mjs, con I/O).
+ */
+export function resolveDeviceIp({ipArg, envIp, configIp} = {}) {
+  for (const v of [ipArg, envIp, configIp]) {
+    const s = typeof v === 'string' ? v.trim() : '';
+    if (s) return s;
+  }
+  return '';
+}
+
 /** Próximo puerto libre desde `start`, evitando los ya usados por remotes. Puro. */
 export function nextFreePort(entries, start = 9000) {
   const used = new Set(entries.filter((e) => Number.isInteger(e.port)).map((e) => e.port));
