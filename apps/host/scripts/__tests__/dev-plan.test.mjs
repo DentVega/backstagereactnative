@@ -85,7 +85,9 @@ test('toMprocsYaml wires Host env, adb-reverse and per-remote procs', () => {
   );
   const yaml = toMprocsYaml(plan);
   assert.match(yaml, /adb-reverse:/);
-  assert.match(yaml, /adb reverse tcp:3999 tcp:3999 && adb reverse tcp:9000 tcp:9000/);
+  assert.match(yaml, /for s in \$\(adb devices/); // loops over every connected device
+  assert.match(yaml, /adb -s .* reverse tcp:3999 tcp:3999/);
+  assert.match(yaml, /adb -s .* reverse tcp:9000 tcp:9000/);
   assert.match(yaml, /DEV_MINIAPP_PATHS: "\/ABS\/\.\.\/hw"/);
   assert.match(yaml, /DEV_REMOTES: "cw=http:\/\/localhost:9000"/);
   assert.match(yaml, /"cw":/);
