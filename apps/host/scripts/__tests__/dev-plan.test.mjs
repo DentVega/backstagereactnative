@@ -95,14 +95,12 @@ test('toMprocsYaml wires Host env, adb-reverse and per-remote procs', () => {
   assert.match(yaml, /"app-android":/);
 });
 
+const entry = (id, p, mode) => ({id, path: p, cwd: abs(p), mode});
+
 test('checkInstalls: missing path → error; installed → clean', () => {
-  const exists = (p) => p === '/ABS/../hw' || p === '/ABS/../hw/node_modules';
+  const exists = (x) => x === '/ABS/../hw' || x === '/ABS/../hw/node_modules';
   const {errors, warnings} = checkInstalls(
-    [
-      {id: 'hw', path: '../hw', mode: 'mount'}, // installed
-      {id: 'ad', path: '../ad', mode: 'mount'}, // path missing
-    ],
-    abs,
+    [entry('hw', '../hw', 'mount'), entry('ad', '../ad', 'mount')],
     exists,
   );
   assert.equal(warnings.length, 0);
@@ -111,30 +109,41 @@ test('checkInstalls: missing path → error; installed → clean', () => {
   assert.match(errors[0].msg, /path no existe/);
 });
 
-test('checkInstalls: mount w/o node_modules → error; remote w/o → warning', () => {
-  // path exists for both; neither has node_modules
-  const exists = (p) => p === '/ABS/../m' || p === '/ABS/../r';
+test('checkInstalls: mount w/o node_modules → error; remote/service → warning', () => {
+  const exists = (x) => ['/ABS/../m', '/ABS/../r', '/ABS/../bs'].includes(x); // paths exist, no node_modules
   const {errors, warnings} = checkInstalls(
-    [
-      {id: 'm', path: '../m', mode: 'mount'},
-      {id: 'r', path: '../r', mode: 'remote', port: 9000},
-    ],
-    abs,
+    [entry('m', '../m', 'mount'), entry('r', '../r', 'remote'), entry('Backstage', '../bs', 'service')],
     exists,
   );
   assert.equal(errors.length, 1);
   assert.equal(errors[0].id, 'm');
   assert.match(errors[0].msg, /falta node_modules.*pnpm install/);
-  assert.equal(warnings.length, 1);
-  assert.equal(warnings[0].id, 'r');
+  assert.equal(warnings.length, 2); // remote r + service Backstage
 });
 
 test('checkInstalls: all installed → nothing', () => {
-  const {errors, warnings} = checkInstalls(
-    [{id: 'hw', path: '../hw', mode: 'mount'}],
-    abs,
-    () => true,
-  );
+  const {errors, warnings} = checkInstalls([entry('hw', '../hw', 'mount')], () => true);
   assert.deepEqual(errors, []);
   assert.deepEqual(warnings, []);
+});
+
+test('buildDevPlan: backstage port drives adb; plan carries backstage', () => {
+  const plan = buildDevPlan([{id: 'r', path: '../r', mode: 'remote', port: 9000}], abs, {
+    backstage: {cwd: '/ABS/bs', port: 3999, autostart: true},
+  });
+  assert.deepEqual(plan.adbPorts, [3999, 9000]);
+  assert.equal(plan.backstage.port, 3999);
+});
+
+test('buildDevPlan: no backstage → null + default adb 3999', () => {
+  const plan = buildDevPlan([{id: 'r', path: '../r', mode: 'remote', port: 9000}], abs);
+  assert.equal(plan.backstage, null);
+  assert.deepEqual(plan.adbPorts, [3999, 9000]);
+});
+
+test('toMprocsYaml: emits Backstage proc when configured, omits otherwise', () => {
+  const withBs = toMprocsYaml(buildDevPlan([], abs, {backstage: {cwd: '/ABS/bs', port: 3999, autostart: true}}));
+  assert.match(withBs, /Backstage:/);
+  assert.match(withBs, /next dev -p 3999/);
+  assert.doesNotMatch(toMprocsYaml(buildDevPlan([], abs)), /Backstage:/);
 });

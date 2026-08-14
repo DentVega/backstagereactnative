@@ -27,27 +27,43 @@ async function loadConfig() {
     console.warn('  cp apps/host/dev-miniapps.config.example.mjs apps/host/dev-miniapps.config.mjs');
   }
   const mod = await import(pathToFileURL(file).href);
-  return mod.devMiniapps ?? mod.default ?? [];
+  return {miniapps: mod.devMiniapps ?? mod.default ?? [], backstage: mod.backstage};
 }
 
-const config = await loadConfig();
+const {miniapps: config, backstage: backstageCfg} = await loadConfig();
 
 const resolvePath = (rel) => path.resolve(hostRoot, rel);
+const backstage = backstageCfg
+  ? {
+      cwd: resolvePath(backstageCfg.path),
+      port: backstageCfg.port ?? 3999,
+      autostart: backstageCfg.autostart !== false,
+    }
+  : null;
 
 let plan;
 try {
-  plan = buildDevPlan(config, resolvePath);
+  plan = buildDevPlan(config, resolvePath, {backstage});
 } catch (e) {
   console.error(`✗ Config inválida: ${e.message}`);
   process.exit(1);
 }
 for (const w of plan.warnings) console.warn(`⚠ ${w}`);
 
-// Preflight: cada miniapp tiene que estar pnpm install-ada.
-const {errors, warnings} = checkInstalls(config, resolvePath, (p) => fs.existsSync(p));
+// Preflight: cada repo (miniapps + Backstage) tiene que estar pnpm install-ado.
+const preflightEntries = config.map((m) => ({
+  id: m.id,
+  path: m.path,
+  cwd: resolvePath(m.path),
+  mode: m.mode ?? 'mount',
+}));
+if (backstage) {
+  preflightEntries.push({id: 'Backstage', path: backstageCfg.path, cwd: backstage.cwd, mode: 'service'});
+}
+const {errors, warnings} = checkInstalls(preflightEntries, (p) => fs.existsSync(p));
 for (const w of warnings) console.warn(`⚠ ${w.id}: ${w.msg}`);
 if (errors.length > 0) {
-  console.error('✗ Miniapps sin listo (el dev-mount rompería el bundle del host):');
+  console.error('✗ Repos sin instalar (el dev-mount rompería el bundle del host):');
   for (const e of errors) console.error(`  • ${e.id}: ${e.msg}`);
   if (process.env.DEV_DRY !== '1') process.exit(1);
 }
@@ -56,7 +72,7 @@ const yaml = toMprocsYaml(plan);
 const yamlPath = path.join(hostPkg, '.mprocs.generated.yaml');
 fs.writeFileSync(yamlPath, yaml, 'utf8');
 
-const summary = `${plan.mountPaths.length} mount, ${plan.remotes.length} remote (adb: ${plan.adbPorts.join(', ')})`;
+const summary = `${plan.mountPaths.length} mount, ${plan.remotes.length} remote${plan.backstage ? ` + Backstage :${plan.backstage.port}` : ''} (adb: ${plan.adbPorts.join(', ')})`;
 
 if (process.env.DEV_DRY === '1') {
   console.log(`▶ pnpm dev (dry-run) — ${summary}\n`);
