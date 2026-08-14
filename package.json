@@ -6,6 +6,7 @@
     "node": ">=20"
   },
   "scripts": {
+    "dev": "pnpm --filter @app/host dev",
     "typecheck": "pnpm -r --if-present typecheck",
     "test": "pnpm -r --if-present test",
     "build:packages": "pnpm -r --filter \"./packages/**\" --if-present build"
