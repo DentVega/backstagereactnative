@@ -8,6 +8,7 @@ import {
   nextFreePort,
   mergeMiniapps,
   serializeConfig,
+  resolveDeviceIp,
   MAX_MOUNTS,
 } from '../dev-plan.mjs';
 
@@ -114,6 +115,16 @@ test('parseAdbDevices: connected serials, skips header/offline/blank', () => {
 test('parseAdbDevices: none connected → empty', () => {
   assert.deepEqual(parseAdbDevices('List of devices attached\n\n'), []);
   assert.deepEqual(parseAdbDevices(''), []);
+});
+
+test('resolveDeviceIp: precedence flag > env > config, trims, else empty', () => {
+  assert.equal(resolveDeviceIp({ipArg: '1.1.1.1', envIp: '2.2.2.2', configIp: '3.3.3.3'}), '1.1.1.1');
+  assert.equal(resolveDeviceIp({envIp: '2.2.2.2', configIp: '3.3.3.3'}), '2.2.2.2');
+  assert.equal(resolveDeviceIp({configIp: '3.3.3.3'}), '3.3.3.3');
+  assert.equal(resolveDeviceIp({ipArg: '  4.4.4.4  '}), '4.4.4.4'); // trims
+  assert.equal(resolveDeviceIp({ipArg: '', envIp: '  ', configIp: '5.5.5.5'}), '5.5.5.5'); // skips blank
+  assert.equal(resolveDeviceIp({}), ''); // nada → el caller auto-detecta
+  assert.equal(resolveDeviceIp(), '');
 });
 
 test('nextFreePort: skips used ports', () => {

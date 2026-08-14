@@ -9,7 +9,7 @@ import {spawn, execFileSync} from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath, pathToFileURL} from 'node:url';
-import {buildDevPlan, toMprocsYaml, checkInstalls} from './dev-plan.mjs';
+import {buildDevPlan, toMprocsYaml, checkInstalls, resolveDeviceIp} from './dev-plan.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url)); // apps/host/scripts
 const hostPkg = path.resolve(here, '..'); // apps/host
@@ -27,10 +27,14 @@ async function loadConfig() {
     console.warn('  cp apps/host/dev-miniapps.config.example.mjs apps/host/dev-miniapps.config.mjs');
   }
   const mod = await import(pathToFileURL(file).href);
-  return {miniapps: mod.devMiniapps ?? mod.default ?? [], backstage: mod.backstage};
+  return {
+    miniapps: mod.devMiniapps ?? mod.default ?? [],
+    backstage: mod.backstage,
+    device: mod.device,
+  };
 }
 
-const {miniapps: config, backstage: backstageCfg} = await loadConfig();
+const {miniapps: config, backstage: backstageCfg, device: deviceCfg} = await loadConfig();
 
 const resolvePath = (rel) => path.resolve(hostRoot, rel);
 const backstage = backstageCfg
@@ -68,10 +72,13 @@ function detectLanIp() {
 const wantDevice = process.argv.includes('--device');
 let net = {host: 'localhost', bindAll: false};
 if (wantDevice) {
+  // IP LAN por precedencia: --ip= > DEVICE_IP > config.device.ip > auto-detección.
   const ipArg = process.argv.find((a) => a.startsWith('--ip='))?.slice(5);
-  const ip = ipArg || process.env.DEVICE_IP || detectLanIp();
+  const ip =
+    resolveDeviceIp({ipArg, envIp: process.env.DEVICE_IP, configIp: deviceCfg?.ip}) ||
+    detectLanIp();
   if (!ip) {
-    console.error('✗ Modo device: no detecté la IP LAN. Pasá --ip=<x> o DEVICE_IP=<x>.');
+    console.error('✗ Modo device: no detecté la IP LAN. Pasá --ip=<x>, DEVICE_IP=<x> o device.ip en el config.');
     process.exit(1);
   }
   net = {host: ip, bindAll: true};

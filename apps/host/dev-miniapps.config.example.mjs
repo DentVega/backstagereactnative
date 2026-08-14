@@ -36,3 +36,12 @@ export const devMiniapps = [
  *   autostart  si arranca prendido (togglable en el TUI de mprocs).
  */
 export const backstage = {path: '../backstage-web', port: 3999, autostart: true};
+
+/**
+ * (Opcional) Modo device físico (iPhone / Android por Wi-Fi/LAN). Solo aplica cuando
+ * corrés `pnpm dev --device`; el flag sigue siendo el switch para entrar en ese modo.
+ *   ip   IP LAN de tu Mac. Es por-máquina → descomentalo y poné la tuya (no la commitees).
+ *        Precedencia: --ip=<x> > DEVICE_IP=<x> > este device.ip > auto-detección.
+ *        Dejalo sin setear (o borrá el export) para que `pnpm dev --device` la auto-detecte.
+ */
+// export const device = {ip: '192.168.0.7'};
