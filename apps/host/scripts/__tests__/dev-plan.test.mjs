@@ -152,6 +152,36 @@ test('serializeConfig: valid module with entries + backstage', () => {
   assert.match(s, /export const backstage = \{path: "\.\.\/backstage-web", port: 3999/);
 });
 
+test('buildDevPlan: device net → remotes use the LAN IP', () => {
+  const plan = buildDevPlan([{id: 'r', path: '../r', mode: 'remote', port: 9000}], abs, {
+    net: {host: '192.168.1.5', bindAll: true},
+  });
+  assert.equal(plan.devRemotesEnv, 'r=http://192.168.1.5:9000');
+  assert.equal(plan.net.bindAll, true);
+});
+
+test('toMprocsYaml: device mode → 0.0.0.0 binds + BACKSTAGE_URL + run-ios --device', () => {
+  const plan = buildDevPlan([{id: 'r', path: '../r', mode: 'remote', port: 9000}], abs, {
+    backstage: {cwd: '/ABS/bs', port: 3999, autostart: true},
+    net: {host: '192.168.1.5', bindAll: true},
+  });
+  const yaml = toMprocsYaml(plan);
+  assert.match(yaml, /next dev -p 3999 -H 0\.0\.0\.0/);
+  assert.match(yaml, /BACKSTAGE_URL: "http:\/\/192\.168\.1\.5:3999"/);
+  assert.match(yaml, /react-native start --host 0\.0\.0\.0/);
+  assert.match(yaml, /webpack-start --port 9000 --host 0\.0\.0\.0/);
+  assert.match(yaml, /run-app\.mjs ios @app\/host --device/);
+});
+
+test('toMprocsYaml: localhost mode → no 0.0.0.0 / no BACKSTAGE_URL', () => {
+  const plan = buildDevPlan([{id: 'r', path: '../r', mode: 'remote', port: 9000}], abs, {
+    backstage: {cwd: '/ABS/bs', port: 3999, autostart: true},
+  });
+  const yaml = toMprocsYaml(plan);
+  assert.doesNotMatch(yaml, /0\.0\.0\.0/);
+  assert.doesNotMatch(yaml, /BACKSTAGE_URL/);
+});
+
 const entry = (id, p, mode) => ({id, path: p, cwd: abs(p), mode});
 
 test('checkInstalls: missing path → error; installed → clean', () => {

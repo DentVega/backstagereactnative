@@ -47,6 +47,7 @@ if (platform === 'android') {
   const args = ['run-ios'];
   if (process.env.IOS_UDID) args.push('--udid', process.env.IOS_UDID);
   else if (process.env.IOS_SIMULATOR) args.push('--simulator', process.env.IOS_SIMULATOR);
+  else if (process.argv.includes('--device')) args.push('--device'); // iPhone físico (modo device)
   run(args);
 } else {
   console.error('uso: run-app.mjs <android|ios> [hostFilter]');
