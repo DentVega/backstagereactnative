@@ -49,6 +49,11 @@ const devMiniapps = devMiniappPaths.map((p) => {
   return { name, capabilities };
 });
 
+// File watching por polling. En discos externos (/Volumes) fsevents/Watchman no
+// entregan cambios → sin polling, editar no dispara rebuild ni HMR. Lo activa
+// `pnpm dev` (RSPACK_POLL, auto en /Volumes) o a mano: RSPACK_POLL=1000.
+const watchPoll = Number(process.env.RSPACK_POLL) || false;
+
 /**
  * Rspack configuration enhanced with Re.Pack defaults for React Native.
  *
@@ -59,6 +64,9 @@ const devMiniapps = devMiniappPaths.map((p) => {
 export default Repack.defineRspackConfig({
   context: __dirname,
   entry: './index.js',
+  watchOptions: watchPoll
+    ? { poll: watchPoll, aggregateTimeout: 300, ignored: /[\\/]node_modules[\\/]/ }
+    : undefined,
   resolve: {
     ...Repack.getResolveOptions(),
     alias: {
