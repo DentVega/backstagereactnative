@@ -174,7 +174,11 @@ export function toMprocsYaml(plan, { hostFilter = '@app/host' } = {}) {
     ? `for s in $(adb devices | awk 'NR>1 && $2=="device"{print $1}'); do ${reverses}; done`
     : 'true';
   const net = plan.net ?? {host: 'localhost', bindAll: false};
-  const bind = net.bindAll ? ' --host 0.0.0.0' : ''; // dev servers en todas las interfaces (device físico)
+  // Device físico: bindear a la IP LAN concreta (no 0.0.0.0). Re.Pack le pasa ese host
+  // al cliente de HMR; con 0.0.0.0 el websocket /hot del device intenta localhost y muere
+  // → el Reload anda (baja el bundle por HTTP) pero el Fast Refresh no. Igual que el repo
+  // de referencia (rimac) que corre iPhone físico por LAN sin iproxy.
+  const bind = net.bindAll ? ` --host ${net.host}` : '';
   const bsPort = plan.backstage?.port ?? BACKSTAGE_PORT;
   const L = ['procs:'];
 

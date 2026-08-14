@@ -160,16 +160,19 @@ test('buildDevPlan: device net → remotes use the LAN IP', () => {
   assert.equal(plan.net.bindAll, true);
 });
 
-test('toMprocsYaml: device mode → 0.0.0.0 binds + BACKSTAGE_URL + run-ios --device', () => {
+test('toMprocsYaml: device mode → dev servers en la IP LAN + BACKSTAGE_URL + run-ios --device', () => {
   const plan = buildDevPlan([{id: 'r', path: '../r', mode: 'remote', port: 9000}], abs, {
     backstage: {cwd: '/ABS/bs', port: 3999, autostart: true},
     net: {host: '192.168.1.5', bindAll: true},
   });
   const yaml = toMprocsYaml(plan);
-  assert.match(yaml, /next dev -p 3999 -H 0\.0\.0\.0/);
+  assert.match(yaml, /next dev -p 3999 -H 0\.0\.0\.0/); // Next binda todas: no tiene el problema del host de HMR
   assert.match(yaml, /BACKSTAGE_URL: "http:\/\/192\.168\.1\.5:3999"/);
-  assert.match(yaml, /react-native start --host 0\.0\.0\.0/);
-  assert.match(yaml, /webpack-start --port 9000 --host 0\.0\.0\.0/);
+  // Re.Pack dev servers bindeados a la IP LAN concreta (no 0.0.0.0) → el cliente de HMR
+  // del device físico apunta a la IP y el websocket /hot conecta (Fast Refresh anda).
+  assert.match(yaml, /react-native start --host 192\.168\.1\.5/);
+  assert.match(yaml, /webpack-start --port 9000 --host 192\.168\.1\.5/);
+  assert.doesNotMatch(yaml, /--host 0\.0\.0\.0/); // los dev servers RN nunca en 0.0.0.0
   assert.match(yaml, /run-app\.mjs ios @app\/host --device/);
 });
 
