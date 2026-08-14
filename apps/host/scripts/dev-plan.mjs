@@ -74,11 +74,16 @@ const yq = (s) => `"${String(s).replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
 
 /** Serialize a plan into an mprocs YAML config. */
 export function toMprocsYaml(plan, { hostFilter = '@app/host' } = {}) {
-  const adb = plan.adbPorts.map((p) => `adb reverse tcp:${p} tcp:${p}`).join(' && ');
+  // Reverse every port on EVERY connected Android device — works with 1 or many
+  // (avoids `adb: more than one device/emulator`); a no-op with no android devices.
+  const reverses = plan.adbPorts.map((p) => `adb -s "$s" reverse tcp:${p} tcp:${p}`).join('; ');
+  const adb = plan.adbPorts.length
+    ? `for s in $(adb devices | awk 'NR>1 && $2=="device"{print $1}'); do ${reverses}; done`
+    : 'true';
   const L = ['procs:'];
 
-  // adb reverse (one-shot): forwards Backstage + every remote port to the device.
-  L.push('  adb-reverse:', '    autostart: true', `    shell: ${yq(adb || 'true')}`);
+  // adb reverse (one-shot): forwards Backstage + every remote port to the device(s).
+  L.push('  adb-reverse:', '    autostart: true', `    shell: ${yq(adb)}`);
 
   // Host Metro/Re.Pack, with the derived env.
   L.push('  Host:', '    autostart: true', '    env:');
