@@ -182,6 +182,13 @@ test('toMprocsYaml: localhost mode → no 0.0.0.0 / no BACKSTAGE_URL', () => {
   assert.doesNotMatch(yaml, /BACKSTAGE_URL/);
 });
 
+test('rspackPoll → RSPACK_POLL en el env del Host; sin él, ausente', () => {
+  const withPoll = buildDevPlan([{id: 'm', path: '../m', mode: 'mount'}], abs, {rspackPoll: 1000});
+  assert.equal(withPoll.rspackPoll, 1000);
+  assert.match(toMprocsYaml(withPoll), /RSPACK_POLL: "1000"/);
+  assert.doesNotMatch(toMprocsYaml(buildDevPlan([{id: 'm', path: '../m', mode: 'mount'}], abs)), /RSPACK_POLL/);
+});
+
 const entry = (id, p, mode) => ({id, path: p, cwd: abs(p), mode});
 
 test('checkInstalls: missing path → error; installed → clean', () => {

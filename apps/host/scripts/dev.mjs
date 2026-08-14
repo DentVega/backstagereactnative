@@ -82,9 +82,15 @@ if (wantDevice) {
   console.log(`     (Backstage queda en ${ip}:${bsPort}; ambos en la misma Wi-Fi.)`);
 }
 
+// Disco externo (/Volumes): fsevents no entrega cambios → polling para el file watcher.
+const rspackPoll = hostRoot.startsWith('/Volumes/') ? 1000 : null;
+if (rspackPoll) {
+  console.log(`▶ repo en disco externo → file watching por polling (${rspackPoll}ms) para que el HMR detecte tus ediciones`);
+}
+
 let plan;
 try {
-  plan = buildDevPlan(config, resolvePath, {backstage, net});
+  plan = buildDevPlan(config, resolvePath, {backstage, net, rspackPoll});
 } catch (e) {
   console.error(`✗ Config inválida: ${e.message}`);
   process.exit(1);

@@ -70,6 +70,7 @@ export function buildDevPlan(config, resolvePath, opts = {}) {
     remotes,
     backstage: opts.backstage ?? null,
     net,
+    rspackPoll: opts.rspackPoll ?? null,
     devMiniappPathsEnv: mountPaths.join(','),
     devRemotesEnv: remotes.map((r) => `${r.id}=http://${net.host}:${r.port}`).join(','),
     adbPorts,
@@ -194,6 +195,9 @@ export function toMprocsYaml(plan, { hostFilter = '@app/host' } = {}) {
   L.push(`      DEV_REMOTES: ${yq(plan.devRemotesEnv)}`);
   if (net.host !== 'localhost') {
     L.push(`      BACKSTAGE_URL: ${yq(`http://${net.host}:${bsPort}`)}`);
+  }
+  if (plan.rspackPoll) {
+    L.push(`      RSPACK_POLL: ${yq(String(plan.rspackPoll))}`); // polling en disco externo
   }
   L.push(`    shell: ${yq(`pnpm --filter ${hostFilter} exec react-native start${bind}`)}`);
 
