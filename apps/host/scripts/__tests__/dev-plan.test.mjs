@@ -1,6 +1,12 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {buildDevPlan, toMprocsYaml, checkInstalls, MAX_MOUNTS} from '../dev-plan.mjs';
+import {
+  buildDevPlan,
+  toMprocsYaml,
+  checkInstalls,
+  parseAdbDevices,
+  MAX_MOUNTS,
+} from '../dev-plan.mjs';
 
 const abs = (p) => `/ABS/${p}`; // deterministic resolvePath for tests
 
@@ -92,7 +98,19 @@ test('toMprocsYaml wires Host env, adb-reverse and per-remote procs', () => {
   assert.match(yaml, /DEV_REMOTES: "cw=http:\/\/localhost:9000"/);
   assert.match(yaml, /"cw":/);
   assert.match(yaml, /--port 9000/);
-  assert.match(yaml, /"app-android":/);
+  assert.match(yaml, /app-android:/);
+  assert.match(yaml, /run-app\.mjs android/);
+});
+
+test('parseAdbDevices: connected serials, skips header/offline/blank', () => {
+  const out =
+    'List of devices attached\n29171FDH300ESL\tdevice\nemulator-5554\tdevice\nfoo\toffline\n\n';
+  assert.deepEqual(parseAdbDevices(out), ['29171FDH300ESL', 'emulator-5554']);
+});
+
+test('parseAdbDevices: none connected → empty', () => {
+  assert.deepEqual(parseAdbDevices('List of devices attached\n\n'), []);
+  assert.deepEqual(parseAdbDevices(''), []);
 });
 
 const entry = (id, p, mode) => ({id, path: p, cwd: abs(p), mode});

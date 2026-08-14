@@ -96,6 +96,16 @@ export function checkInstalls(entries, exists) {
   return {errors, warnings};
 }
 
+/** Serials de los devices Android conectados, del output de `adb devices`. Puro. */
+export function parseAdbDevices(output) {
+  return String(output)
+    .split('\n')
+    .slice(1) // salta el header "List of devices attached"
+    .map((l) => l.trim())
+    .filter((l) => /\tdevice$/.test(l)) // solo "device" (no offline/unauthorized)
+    .map((l) => l.split('\t')[0]);
+}
+
 const yq = (s) => `"${String(s).replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
 
 /** Serialize a plan into an mprocs YAML config. */
@@ -133,10 +143,12 @@ export function toMprocsYaml(plan, { hostFilter = '@app/host' } = {}) {
   }
 
   // Install/launch the native app on demand (start it from the TUI when needed).
-  for (const plat of ['android', 'ios']) {
-    L.push(`  ${yq(`app-${plat}`)}:`, '    autostart: false');
-    L.push(`    shell: ${yq(`pnpm --filter ${hostFilter} ${plat}`)}`);
-  }
+  // run-app.mjs picks a device (ANDROID_SERIAL / first connected) so it works with
+  // 2+ devices instead of failing with "more than one device/emulator".
+  L.push('  app-android:', '    autostart: false');
+  L.push(`    shell: ${yq(`node apps/host/scripts/run-app.mjs android ${hostFilter}`)}`);
+  L.push('  app-ios:', '    autostart: false');
+  L.push(`    shell: ${yq(`node apps/host/scripts/run-app.mjs ios ${hostFilter}`)}`);
 
   return L.join('\n') + '\n';
 }
