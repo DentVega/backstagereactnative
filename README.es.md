@@ -38,7 +38,7 @@ memory-bank/                Artefactos del proceso AI-DLC (ver abajo)
 ## Qué lo hace interesante
 
 - 🧩 **Module Federation en React Native** vía **Re.Pack** (Rspack) — no Metro. Host + chunks remotos bajo demanda, singletons compartidos (React, RN, React Query).
-- 🔐 **Frontera de seguridad** — la auth/sesión vive solo en el host; las miniapps reciben **capabilities acotadas y revocables**, nunca credenciales crudas. La integridad del chunk se verifica antes de montar.
+- 🔐 **Frontera de seguridad** — la auth/sesión vive solo en el host; las miniapps reciben **capabilities acotadas y revocables**, nunca credenciales crudas. La **integridad** del chunk (sha256) se verifica antes de montar; la **firma** criptográfica (autenticidad, contra un trust bundle firmado por el root) está en el roadmap — el backend ya la trae, la verificación en el host es el próximo paso.
 - 📜 **Contrato versionado** — el host y Backstage comparten exactamente una cosa: `@org/miniapp-contract`. El host resuelve miniapps por **rango semver**, así controla su propia ventana de compatibilidad.
 - 🤖 **Flujo AI-DLC** — todo el proyecto se construyó con un ciclo de entrega asistido por IA (Inception → bolts de Construcción → Operations), con cada decisión trazada en `memory-bank/` (requisitos, ADRs, registros de bolt). Es un showcase de *cómo* se dirigió el trabajo, no solo del resultado.
 
