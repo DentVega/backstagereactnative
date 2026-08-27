@@ -43,6 +43,7 @@ export function isManifest(x: unknown): x is Manifest {
   if (!Array.isArray(o.shared) || !o.shared.every(isSharedDepSpec)) return false;
   if (!Array.isArray(o.capabilities) || !o.capabilities.every(isCapability)) return false;
   if (o.integrity !== undefined && typeof o.integrity !== "string") return false;
+  if (o.signature !== undefined && typeof o.signature !== "string") return false;
 
   if (o.minHostContract !== undefined) {
     const mh = o.minHostContract as Record<string, unknown>;

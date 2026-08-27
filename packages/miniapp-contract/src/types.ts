@@ -47,6 +47,12 @@ export interface Manifest {
    * content is not validated.
    */
   readonly integrity?: string;
+  /**
+   * Ed25519 signature (base64url) over `${id}:${platform}:${integrity}`. Proves
+   * authenticity (who published), on top of the integrity hash. The host verifies
+   * it against the miniapp's public key from the root-signed trust bundle. Optional/additive.
+   */
+  readonly signature?: string;
   /** Minimum host contract this manifest was built against (compat with older hosts). */
   readonly minHostContract?: { readonly reactNative: string; readonly contractVersion: string };
 }

@@ -37,7 +37,7 @@
 
 ## Banking / security (project rule)
 - Auth/session lives in the host only; miniapps get scoped, revocable capabilities — never raw credentials.
-- No secrets or PII in logs, bundles, or chunk artifacts. Verify remote chunk **integrity** (sha256) before mount; **signature** verification (authenticity, against a root-signed trust bundle) is planned — the backend already ships it, the host side is not implemented yet.
+- No secrets or PII in logs, bundles, or chunk artifacts. Verify remote chunk **integrity** (sha256) before mount; **signature** verification (authenticity, against a root-signed trust bundle) is implemented and runs in **warn** mode (off until `ROOT_PUBLIC_KEY` is pinned) — flipping to **enforce** is an operational step (`SIGNATURE_MODE`).
 
 ## Testing
 - Components → React Native Testing Library. Device E2E / federated-chunk loading → `agent-device`.

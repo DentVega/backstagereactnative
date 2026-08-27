@@ -8,6 +8,8 @@ import type { MetricsClient } from "./MetricsClient";
 import type { ChunkLoader } from "./ChunkLoader";
 import type { HostProvided } from "./evaluate";
 import type { IntegrityVerifier } from "./integrity";
+import type { SignatureVerifier } from "./signature";
+import type { SignatureMode } from "./signatureGate";
 import { isRetryable, type FallbackReason } from "./loaderState";
 
 export interface MiniappHostProps {
@@ -17,6 +19,10 @@ export interface MiniappHostProps {
   hostProvided: HostProvided;
   capabilities: CapabilityGrant;
   integrity?: IntegrityVerifier;
+  /** Verificador de firma del chunk (autenticidad). Opcional → sin verificación. */
+  signature?: SignatureVerifier;
+  /** warn (monta + métrica) | enforce (bloquea). Default warn. */
+  signatureMode?: SignatureMode;
   onRetry?: () => void;
   retry?: { maxAuto?: number; backoffMs?: number };
   /** contractVersion del host — habilita el guard host-too-old (minHostContract). */
@@ -34,6 +40,8 @@ const FALLBACK_COPY: Record<FallbackReason, string> = {
   skew: "Esta miniapp no es compatible con esta versión de la app. Actualizá la app para usarla.",
   "integrity-failed": "No pudimos verificar la integridad de la miniapp.",
   "host-too-old": "Actualizá la app para usar esta miniapp.",
+  "invalid-signature": "No pudimos verificar la firma de esta miniapp.",
+  "unknown-key": "Esta miniapp no está autorizada para ejecutarse.",
 };
 
 export function MiniappHost(props: MiniappHostProps): React.JSX.Element {
@@ -44,6 +52,8 @@ export function MiniappHost(props: MiniappHostProps): React.JSX.Element {
     chunkLoader: props.chunkLoader,
     hostProvided: props.hostProvided,
     integrity: props.integrity,
+    signature: props.signature,
+    signatureMode: props.signatureMode,
     retry: props.retry,
     hostContractVersion: props.hostContractVersion,
     resolveVersion: props.resolveVersion,

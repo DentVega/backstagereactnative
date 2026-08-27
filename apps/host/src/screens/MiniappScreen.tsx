@@ -13,11 +13,19 @@ import {
   parseDevRemotes,
   devResolveClient,
   isDevRemote,
+  httpTrustBundleClient,
+  signatureVerifier,
 } from '@dentvega/host-runtime';
 import type {RootStackParamList} from '../navigation';
 import {useSession, deriveCapabilities} from '../session/store';
 import {repackChunkLoader} from '../chunkLoader';
-import {HOST_PROVIDED, HOST_CONTRACT_VERSION, BACKSTAGE_BASE_URL} from '../hostProvided';
+import {
+  HOST_PROVIDED,
+  HOST_CONTRACT_VERSION,
+  BACKSTAGE_BASE_URL,
+  ROOT_PUBLIC_KEY,
+  SIGNATURE_MODE,
+} from '../hostProvided';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Miniapp'>;
 
@@ -33,6 +41,11 @@ const resolveClient = cachingResolveClient(
 );
 const integrityVerifier = sha256Verifier();
 const metricsClient = httpMetricsClient(BACKSTAGE_BASE_URL);
+// Firma: el trust bundle se verifica contra la pubkey root pineada (ROOT_PUBLIC_KEY).
+// Vacío ⇒ el verifier devuelve 'skip' (off). Singleton de módulo → cachea el bundle.
+const chunkSignatureVerifier = signatureVerifier(
+  httpTrustBundleClient(BACKSTAGE_BASE_URL, ROOT_PUBLIC_KEY),
+);
 
 export function MiniappScreen({route}: Props): React.JSX.Element {
   const theme = useTheme();
@@ -57,6 +70,8 @@ export function MiniappScreen({route}: Props): React.JSX.Element {
         metrics={metricsClient}
         capabilities={grant}
         integrity={isDevRemote(id, devRemotes) ? noopVerifier : integrityVerifier}
+        signature={isDevRemote(id, devRemotes) ? undefined : chunkSignatureVerifier}
+        signatureMode={SIGNATURE_MODE}
       />
     </SafeAreaView>
   );

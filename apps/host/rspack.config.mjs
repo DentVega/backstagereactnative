@@ -98,6 +98,9 @@ export default Repack.defineRspackConfig({
       __DEV_REMOTES__: JSON.stringify(process.env.DEV_REMOTES ?? ''),
       // contractVersion del host (fuente única shared-deps.mjs) → guard host-too-old.
       __HOST_CONTRACT_VERSION__: JSON.stringify(CONTRACT_VERSION),
+      // Firma de chunks: pubkey root pineada ('' = off) + modo (warn|enforce).
+      __ROOT_PUBLIC_KEY__: JSON.stringify(process.env.ROOT_PUBLIC_KEY ?? ''),
+      __SIGNATURE_MODE__: JSON.stringify(process.env.SIGNATURE_MODE ?? 'warn'),
     }),
     /**
      * Module Federation v2 — the host container.

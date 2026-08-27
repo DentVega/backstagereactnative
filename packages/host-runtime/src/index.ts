@@ -12,6 +12,15 @@ export type { IntegrityVerifier } from "./integrity";
 export { noopVerifier, sha256Verifier } from "./integrity";
 export { sha256Hex } from "./sha256";
 
+export type { SignatureVerifier, SignatureResult } from "./signature";
+export { signatureVerifier } from "./signature";
+export type { SignatureMode, SignatureGateOutcome } from "./signatureGate";
+export { signatureGate } from "./signatureGate";
+export type { TrustBundleClient, SignedTrustBundle, TrustBundleBody } from "./trustBundle";
+export { httpTrustBundleClient, canonicalBundleMessage } from "./trustBundle";
+export { signatureMessage } from "./signatureMessage";
+export { b64urlToBytes } from "./base64url";
+
 export type { ResolveClient } from "./ResolveClient";
 export { httpResolveClient } from "./ResolveClient";
 export { cachingResolveClient } from "./cachingResolveClient";
