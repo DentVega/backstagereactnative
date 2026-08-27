@@ -8,6 +8,8 @@ import type { MetricsClient } from "./MetricsClient";
 import type { ChunkLoader } from "./ChunkLoader";
 import type { HostProvided } from "./evaluate";
 import type { IntegrityVerifier } from "./integrity";
+import type { SignatureVerifier } from "./signature";
+import type { SignatureMode } from "./signatureGate";
 import { isRetryable, type FallbackReason } from "./loaderState";
 
 export interface MiniappHostProps {
@@ -17,6 +19,10 @@ export interface MiniappHostProps {
   hostProvided: HostProvided;
   capabilities: CapabilityGrant;
   integrity?: IntegrityVerifier;
+  /** Verificador de firma del chunk (autenticidad). Opcional → sin verificación. */
+  signature?: SignatureVerifier;
+  /** warn (monta + métrica) | enforce (bloquea). Default warn. */
+  signatureMode?: SignatureMode;
   onRetry?: () => void;
   retry?: { maxAuto?: number; backoffMs?: number };
   /** contractVersion del host — habilita el guard host-too-old (minHostContract). */
@@ -46,6 +52,8 @@ export function MiniappHost(props: MiniappHostProps): React.JSX.Element {
     chunkLoader: props.chunkLoader,
     hostProvided: props.hostProvided,
     integrity: props.integrity,
+    signature: props.signature,
+    signatureMode: props.signatureMode,
     retry: props.retry,
     hostContractVersion: props.hostContractVersion,
     resolveVersion: props.resolveVersion,

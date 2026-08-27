@@ -13,6 +13,8 @@ import type { ResolveClient } from "./ResolveClient";
 import type { MetricsClient } from "./MetricsClient";
 import type { ChunkLoader, EntryComponent } from "./ChunkLoader";
 import { noopVerifier, type IntegrityVerifier } from "./integrity";
+import type { SignatureVerifier } from "./signature";
+import { signatureGate, type SignatureMode } from "./signatureGate";
 
 export interface UseMiniappDeps {
   id: MiniappId;
@@ -20,6 +22,10 @@ export interface UseMiniappDeps {
   chunkLoader: ChunkLoader;
   hostProvided: HostProvided;
   integrity?: IntegrityVerifier;
+  /** Verificador de firma del chunk (autenticidad). Opcional → sin verificación. */
+  signature?: SignatureVerifier;
+  /** warn (monta + métrica) | enforce (bloquea). Default warn. */
+  signatureMode?: SignatureMode;
   /** contractVersion del propio host — habilita el guard host-too-old (minHostContract). */
   hostContractVersion?: string;
   /** Versión servida a resolver (del catálogo) — habilita el cache por-versión. */
@@ -73,10 +79,11 @@ export function useMiniapp(deps: UseMiniappDeps): UseMiniappResult {
         let component: EntryComponent | null = null;
         let mountVersion: string | undefined;
         try {
+          const platform = Platform.OS === "ios" ? "ios" : "android";
           const resolved = await resolveClient.resolve({
             id,
             version: deps.resolveVersion as SemVer | undefined,
-            platform: Platform.OS === "ios" ? "ios" : "android",
+            platform,
           });
           if (cancelled.current) return;
           mountVersion = resolved.version;
@@ -90,9 +97,18 @@ export function useMiniapp(deps: UseMiniappDeps): UseMiniappResult {
             if (!intact) {
               failure = { reason: "integrity-failed", detail: "integrity check failed" };
             } else {
-              dispatch({ type: "resolved", resolved });
-              component = await chunkLoader.load(resolved);
+              // Gate de firma (autenticidad). En warn reporta y monta; en enforce bloquea.
+              const sigResult = deps.signature ? await deps.signature.verify(resolved, platform) : "skip";
               if (cancelled.current) return;
+              const gate = signatureGate(sigResult, deps.signatureMode ?? "warn");
+              if (gate.block) {
+                failure = { reason: gate.reason, detail: `signature ${sigResult}` };
+              } else {
+                if (gate.metric) deps.metrics?.track({ type: "fallback", id, reason: gate.metric });
+                dispatch({ type: "resolved", resolved });
+                component = await chunkLoader.load(resolved);
+                if (cancelled.current) return;
+              }
             }
           }
         } catch (err) {
@@ -131,7 +147,7 @@ export function useMiniapp(deps: UseMiniappDeps): UseMiniappResult {
     return () => {
       cancelled.current = true;
     };
-  }, [id, resolveClient, chunkLoader, hostProvided, integrity, deps.hostContractVersion, deps.resolveVersion, attempt, maxAuto, backoffMs]);
+  }, [id, resolveClient, chunkLoader, hostProvided, integrity, deps.signature, deps.signatureMode, deps.hostContractVersion, deps.resolveVersion, attempt, maxAuto, backoffMs]);
 
   return { state, Entry, reload, retrying };
 }
