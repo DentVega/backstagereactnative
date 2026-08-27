@@ -1,6 +1,6 @@
 import { ed25519 } from "@noble/curves/ed25519.js";
 import type { ResolveResponse } from "@dentvega/miniapp-contract";
-import { b64urlToBytes } from "./base64url";
+import { b64urlToBytes, utf8Bytes } from "./base64url";
 import { signatureMessage } from "./signatureMessage";
 import type { TrustBundleClient } from "./trustBundle";
 
@@ -26,7 +26,7 @@ export function signatureVerifier(bundle: TrustBundleClient): SignatureVerifier 
       const integrity = resolved.manifest.integrity;
       if (!sig || !integrity) return "missing";
       try {
-        const msg = new TextEncoder().encode(signatureMessage(resolved.id, platform, integrity));
+        const msg = utf8Bytes(signatureMessage(resolved.id, platform, integrity));
         const ok = ed25519.verify(b64urlToBytes(sig), msg, b64urlToBytes(pubkey));
         return ok ? "ok" : "invalid";
       } catch {

@@ -29,3 +29,14 @@ export const HOST_CONTRACT_VERSION =
  */
 export const BACKSTAGE_BASE_URL =
   typeof __BACKSTAGE_URL__ !== 'undefined' ? __BACKSTAGE_URL__ : 'http://localhost:3999';
+
+/**
+ * Pubkey root (base64url) pineada para verificar el trust bundle. Inyectada en build
+ * (DefinePlugin, de ROOT_PUBLIC_KEY). Vacío ⇒ verificación de firma off (skip).
+ */
+export const ROOT_PUBLIC_KEY =
+  typeof __ROOT_PUBLIC_KEY__ !== 'undefined' ? __ROOT_PUBLIC_KEY__ : '';
+
+/** Modo de la verificación de firma. 'enforce' bloquea; cualquier otra cosa = 'warn'. */
+export const SIGNATURE_MODE: 'warn' | 'enforce' =
+  typeof __SIGNATURE_MODE__ !== 'undefined' && __SIGNATURE_MODE__ === 'enforce' ? 'enforce' : 'warn';

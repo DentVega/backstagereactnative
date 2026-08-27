@@ -6,6 +6,10 @@ declare const __DEV_MINIAPPS__: { name: string; capabilities: string[] }[];
 declare const __DEV_REMOTES__: string;
 /** contractVersion del host (shared-deps.mjs CONTRACT_VERSION) → guard host-too-old. */
 declare const __HOST_CONTRACT_VERSION__: string | undefined;
+/** Pubkey root (base64url) pineada, para verificar el trust bundle. '' = firma off. */
+declare const __ROOT_PUBLIC_KEY__: string | undefined;
+/** Modo de la verificación de firma: 'warn' (monta + métrica) | 'enforce' (bloquea). */
+declare const __SIGNATURE_MODE__: string | undefined;
 
 /**
  * Dev-mount (Mode 1): rspack aliases `@dev-miniapp-0`..`@dev-miniapp-5` to each

@@ -1,5 +1,5 @@
 import { ed25519 } from "@noble/curves/ed25519.js";
-import { b64urlToBytes } from "./base64url";
+import { b64urlToBytes, utf8Bytes } from "./base64url";
 
 export interface TrustBundleBody {
   readonly version: number;
@@ -48,7 +48,7 @@ export function httpTrustBundleClient(
       if (!res.ok) return null;
       const signed = (await res.json()) as SignedTrustBundle;
       if (!signed?.bundle || typeof signed.signature !== "string") return null;
-      const msg = new TextEncoder().encode(canonicalBundleMessage(signed.bundle));
+      const msg = utf8Bytes(canonicalBundleMessage(signed.bundle));
       const ok = ed25519.verify(
         b64urlToBytes(signed.signature),
         msg,
