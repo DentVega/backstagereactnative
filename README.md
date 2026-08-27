@@ -38,7 +38,7 @@ memory-bank/                AI-DLC process artifacts (see below)
 ## What makes it interesting
 
 - 🧩 **Module Federation on React Native** via **Re.Pack** (Rspack) — not Metro. Host + on-demand remote chunks, shared singletons (React, RN, React Query).
-- 🔐 **Security boundary** — auth/session lives in the host only; miniapps receive **scoped, revocable capabilities**, never raw credentials. Chunk integrity is verified before mount.
+- 🔐 **Security boundary** — auth/session lives in the host only; miniapps receive **scoped, revocable capabilities**, never raw credentials. Chunk **integrity** (sha256) is verified before mount; cryptographic **signing** (authenticity, against a root-signed trust bundle) is on the roadmap — the backend already ships it, host-side verification is next.
 - 📜 **Versioned contract** — the host and Backstage share exactly one thing: `@org/miniapp-contract`. The host resolves miniapps by **semver range**, so it controls its own compatibility window.
 - 🤖 **AI-DLC workflow** — the whole project was built through an AI-assisted delivery lifecycle (Inception → Construction bolts → Operations), with every decision traced in `memory-bank/` (requirements, ADRs, bolt records). It's a showcase of *how* the work was driven, not just the result.
 
