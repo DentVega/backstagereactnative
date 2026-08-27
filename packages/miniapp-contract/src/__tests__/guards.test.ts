@@ -35,6 +35,10 @@ describe("isManifest", () => {
     expect(isManifest({ ...valid, integrity: "sha256-abc" })).toBe(true);
   });
 
+  it("accepts an optional signature string", () => {
+    expect(isManifest({ ...valid, signature: "ed-b64url" })).toBe(true);
+  });
+
   it("accepts a manifest with a valid minHostContract", () => {
     expect(
       isManifest({ ...valid, minHostContract: { reactNative: "0.76.6", contractVersion: "1.0.0" } })
@@ -59,6 +63,7 @@ describe("isManifest", () => {
     ["shared not array", { ...valid, shared: {} }],
     ["bad shared entry", { ...valid, shared: [{ name: "react", singleton: true }] }],
     ["numeric integrity", { ...valid, integrity: 123 }],
+    ["numeric signature", { ...valid, signature: 123 }],
   ])("rejects %s", (_label, input) => {
     expect(isManifest(input)).toBe(false);
   });
