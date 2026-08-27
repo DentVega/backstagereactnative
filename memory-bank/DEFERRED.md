@@ -12,21 +12,16 @@
   del scaffolder (Intent 06, Bolt 06-2, `SCAFFOLD_ALLOWED_LOGINS`) pero a nivel de toda la app.
 - **Estado:** idea del usuario (2026-07-10). Candidato a un intent futuro de "control de acceso".
 
-## Verificación de firma de chunks en el host (2026-08-26)
-- **Qué:** que el host **verifique la firma Ed25519** de cada chunk (autenticidad), además del
-  hash sha256 (integridad) que ya verifica. Requiere: pinear la pubkey **root** del owner en el
-  binario, traer el trust bundle (`GET /api/trust-bundle`) y verificar su firma root, sacar la
-  pubkey de la miniapp de ahí, verificar la firma del chunk sobre `id:platform:integrity`, con
-  anti-rollback por el `version` monotónico del bundle, y **enforce** (sin firma válida → no
-  monta, razón `invalid-signature`/`unknown-key` no-retryable). Dep `@noble/ed25519` (JS puro).
-- **Por qué:** el sha256 prueba integridad pero no autenticidad — un atacante que controle a la
-  vez el storage y el registry puede meter un chunk malicioso y recalcular su hash. La firma
-  cierra eso. Es el ítem #2 del roadmap de la plataforma.
-- **Dónde encaja:** `host-runtime` (`useMiniapp`/loader, junto a la verificación de integridad);
-  el backend (backstage-web) **ya** acepta/sirve firmas y el trust bundle (PR #1, mergeado
-  2026-08-27). Falta también firmar en el CI de cada miniapp (`publish.mjs` + secret
-  `MINIAPP_SIGN_KEY`, out-of-band en el template). Spec/plan en `backstage-web`
-  `docs/superpowers/{specs,plans}/2026-08-26-chunk-signing*`.
-- **Estado:** backend construido y mergeado; host + CI pendientes. Activación = **enforce
-  directo** → orden: deploy backend → firmar la flota → republicar firmado → recién ahí el host
-  con enforce.
+## Verificación de firma de chunks en el host (2026-08-26) — ✅ IMPLEMENTADO, activación pendiente
+- **Estado (2026-08-27):** el **código está en las tres capas**. Host: `host-runtime` verifica la
+  firma Ed25519 del chunk (`signatureVerifier` + `httpTrustBundleClient` con `@noble/curves`,
+  `signatureGate`, wire en `useMiniapp`; razones `invalid-signature`/`unknown-key`). Corre en
+  modo **warn** (monta + métrica) y está **off** hasta pinear `ROOT_PUBLIC_KEY`. Backend
+  (backstage-web) acepta/sirve firmas + trust bundle. CI (`miniapp-template`) firma con
+  `MINIAPP_SIGN_KEY`. Spec/plan en backstage-web `docs/superpowers/{specs,plans}/2026-08-27-chunk-signing-end-to-end*`.
+- **Falta (operacional, owner):** publicar contract `@dentvega/miniapp-contract@0.4.0`; keygen root
+  → `ROOT_PUBLIC_KEY` en Vercel + pin en el host; keygen por-miniapp → secret `MINIAPP_SIGN_KEY`
+  + registrar pubkeys; firmar+publicar el trust bundle; republicar la flota firmada; observar
+  `/metrics` en warn; flip `SIGNATURE_MODE=enforce` + release del host.
+- **Diferido de verdad (follow-up):** anti-rollback persistente del trust bundle (el host no tiene
+  persistencia; hoy verifica la firma root pero no recuerda el `version` más alto entre sesiones).
