@@ -34,6 +34,8 @@ const FALLBACK_COPY: Record<FallbackReason, string> = {
   skew: "Esta miniapp no es compatible con esta versión de la app. Actualizá la app para usarla.",
   "integrity-failed": "No pudimos verificar la integridad de la miniapp.",
   "host-too-old": "Actualizá la app para usar esta miniapp.",
+  "invalid-signature": "No pudimos verificar la firma de esta miniapp.",
+  "unknown-key": "Esta miniapp no está autorizada para ejecutarse.",
 };
 
 export function MiniappHost(props: MiniappHostProps): React.JSX.Element {

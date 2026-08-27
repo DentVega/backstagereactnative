@@ -1,9 +1,8 @@
 import { ed25519 } from "@noble/curves/ed25519.js";
 import { signatureVerifier } from "../signature";
 import { signatureMessage } from "../signatureMessage";
+import { bytesToB64url as b64url } from "./_b64";
 import type { ResolveResponse } from "@dentvega/miniapp-contract";
-
-const b64url = (b: Uint8Array) => Buffer.from(b).toString("base64url");
 const bundleOf = (keys: Record<string, string> | null) => ({ keys: async () => keys });
 
 function resolved(signature?: string, integrity: string | undefined = "sha256-abc"): ResolveResponse {

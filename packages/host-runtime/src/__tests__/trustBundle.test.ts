@@ -1,7 +1,6 @@
 import { ed25519 } from "@noble/curves/ed25519.js";
 import { httpTrustBundleClient, canonicalBundleMessage } from "../trustBundle";
-
-const bytesToB64url = (b: Uint8Array) => Buffer.from(b).toString("base64url"); // test-only (node)
+import { bytesToB64url } from "./_b64";
 
 function makeBundle(rootSecret: Uint8Array, keys: Record<string, string>) {
   const body = { version: 1, updatedAt: "2026-08-27T00:00:00.000Z", keys };

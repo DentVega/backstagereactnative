@@ -14,7 +14,7 @@ export interface SignedTrustBundle {
 /** Igual que el backend: keys ordenadas alfabéticamente, JSON determinístico. */
 export function canonicalBundleMessage(body: TrustBundleBody): string {
   const keys: Record<string, string> = {};
-  for (const k of Object.keys(body.keys).sort()) keys[k] = body.keys[k];
+  for (const k of Object.keys(body.keys).sort()) keys[k] = body.keys[k]!;
   return JSON.stringify({ version: body.version, updatedAt: body.updatedAt, keys });
 }
 
