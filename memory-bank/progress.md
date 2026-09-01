@@ -6,7 +6,7 @@
 - **Current Phase (2026-07-17): PRODUCCIÓN — plataforma live y validada end-to-end en dispositivo.** Backstage desplegado en Vercel (`backstage-web-blond.vercel.app`); registry en Upstash Redis; chunks en Vercel Blob (CDN); integridad sha256 real; el host resuelve+verifica+monta desde internet sin dependencia local.
 - **Bolts Completed:** 01 (4/4) · 02 (4/4) · 03 (4/4) · 04 (parcial + publish-UI hecho fuera de bolt). Además, en modo directo esta sesión se cerró TODA la deuda de Operations (build, storage, CDN, integridad, deploy).
 - **Verificado on-device** (emulador saliendo a internet como un teléfono real): resolve→Upstash→verify sha256→Blob CDN→mount. Ver `audit.md` (2026-07-13/17) y `operations/activation-checklist.md`.
-- **Roadmap de 5 pendientes: 5/5 HECHOS** (storage, integridad, home dinámico, contrato publicado, deploy). Abierto solo menor: firma de chunk (vs hash), iOS en device.
+- **Roadmap de 5 pendientes: 5/5 HECHOS** (storage, integridad, home dinámico, contrato publicado, deploy). Firma de chunks ✅ (validada en prod 2026-09-01). Abierto: iOS en device (menor); registry sin control de concurrencia (bug, ver Deuda técnica).
 
 ## Milestones Achieved
 - [x] Memory Bank and standards initialized
@@ -91,7 +91,8 @@
 - ✅ **Secrets por-repo — AUTOMATIZADO (2026-07-21):** el scaffolder ahora siembra `BACKSTAGE_URL` + `PUBLISH_TOKEN` en cada repo nuevo (`GitProvider.setSecret`, libsodium sealed-box, best-effort). Valores desde el env de Backstage vía `scaffoldSecrets()`. **Requiere setear `BACKSTAGE_URL` en Vercel prod** (= URL de Backstage; `PUBLISH_TOKEN` ya está). Crypto verificado bajo node (201); libsodium no corre bajo vitest → unit tests cubren la orquestación. Pendiente menor: `PUBLISH_TOKEN` de prod sigue siendo débil (`dev-*`) → rotar a token fuerte en Vercel + repos a la vez.
 - **Scaffolder auto-setea el permiso de PRs de Actions** (`enableActionsPullRequests`, best-effort) → repos nuevos listos para template-sync sin paso manual. Junto con el auto-seed de secrets, el onboarding de una miniapp nueva es 100% automático.
 - **Estado de CI en la UI (badge):** sigue "unknown" — scope OAuth `read:user` no lee Actions. Ampliar scope + `CI_STATUS_ENABLED=true`.
-- **Integridad = hash; firma = backend listo, host pendiente (2026-08-27):** el sha256 protege integridad, no autenticidad de origen. El **backend** ya trae la firma Ed25519 (acepta/sirve `manifest.signature` + trust bundle; backstage-web PR #1 mergeado). Falta el **host**: verificar la firma contra la pubkey del trust bundle (pin root, fetch+verify, enforce). Ver `memory-bank/DEFERRED.md` → "Verificación de firma de chunks en el host".
+- ✅ **Firma de chunks — DONE + VALIDADO EN PROD (2026-09-01):** el host verifica la firma Ed25519 del chunk (autenticidad) además del sha256 (integridad). Corre en **warn** por default (monta + métrica), pasa a **enforce** vía el flag build-time `SIGNATURE_MODE` (rechazo probado end-to-end en prod). Las 3 miniapps sirven firmado y verifican contra el trust bundle root-firmado (v1). Ver `DEFERRED.md` → "Verificación de firma de chunks en el host".
+- 🔴 **Registry sin control de concurrencia (bug de backstage-web, para awareness):** el registry es un blob único en KV (`lib/registry/kv.ts`, `kvStore` load→modifica→save, sin CAS/lock). Publishes encimados se pisan (lost update). **Reproducido:** cards_wallet corrió 3 publishes juntos (08-31) → el CI publicó iOS de 0.1.13 + toda la 0.1.14, pero el registry los perdió → cards_wallet quedó sin iOS. Workaround: republicar 1 vez sin encimar. Fix de fondo (backstage-web): optimistic locking / keys por-miniapp.
 - **iOS device:** `pod install` presumiblemente OK (CocoaPods 1.16.2) pero no verificado en iOS real.
 - **account-dashboard typecheck:** su `tsconfig.json` referencia un `tsconfig.base.json` del monorepo (ruta rota) — pre-existente; el build (`bundle:android`) funciona.
 - `@module-federation/enhanced` fijado a 0.9.0 (no subir con Re.Pack 5.2.5).
@@ -104,5 +105,5 @@
 
 ## Deferred or Blocked Tasks
 - CDN/hosting de chunks en producción → Operations.
-- Auth/sesión real contra backend, firma de chunks en prod, transferencias → intents posteriores.
+- Auth/sesión real contra backend, transferencias → intents posteriores. (Firma de chunks: ✅ hecha y validada en prod 2026-09-01.)
 - Parity vs. app Android → `/parity` tras el slice.
