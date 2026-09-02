@@ -1,6 +1,10 @@
 # ADR-014 — RegistryStore sobre Upstash Redis (Vercel KV)
 
 > Bolt: 03-1-registry-kv · Estado: **Aceptada** (checkpoint 2026-07-10)
+> **Superada 2026-09-02** por keys por-miniapp + compare-and-set en backstage-web (PR #2/#3) — la
+> granularidad "una clave para todo el registry" (que este ADR ya preveía migrar "si crece") se
+> reemplazó por `registry:app:<id>` + índice, tras un lost-update en prod. El resto del ADR
+> (Upstash como store) sigue vigente. Registro histórico; no reescribir el cuerpo.
 
 ## Contexto
 Backstage corre en Vercel (serverless). El `RegistryStore` actual (JSON en fs, ADR-006) **no persiste** entre invocaciones serverless ni entre despliegues. Necesita un almacén persistente. Vercel KV clásico ya no se ofrece; el KV actual del Marketplace es **Upstash Redis**.
