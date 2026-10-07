@@ -15,10 +15,11 @@ import {
   isDevRemote,
   httpTrustBundleClient,
   signatureVerifier,
-} from '@dentvega/host-runtime';
+} from '@dentvega/miniapp-runtime';
 import type {RootStackParamList} from '../navigation';
 import {useSession, deriveCapabilities} from '../session/store';
 import {repackChunkLoader} from '../chunkLoader';
+import {miniappRender} from '../miniappRender';
 import {
   HOST_PROVIDED,
   HOST_CONTRACT_VERSION,
@@ -72,6 +73,7 @@ export function MiniappScreen({route}: Props): React.JSX.Element {
         integrity={isDevRemote(id, devRemotes) ? noopVerifier : integrityVerifier}
         signature={isDevRemote(id, devRemotes) ? undefined : chunkSignatureVerifier}
         signatureMode={SIGNATURE_MODE}
+        render={miniappRender}
       />
     </SafeAreaView>
   );

@@ -75,7 +75,7 @@ export function buildMfShared(deps, pkgVersion) {
  * Mantener al día con package.json: el check de reconciliación (reconcileDeps) exige que
  * TODA runtime dep esté en SHARED_DEPS, en CAPABILITY_SINCE.native, o acá.
  */
-export const BUNDLED_DEPS = ["@dentvega/host-runtime", "@dentvega/miniapp-contract"];
+export const BUNDLED_DEPS = ["@dentvega/miniapp-runtime", "@dentvega/miniapp-contract"];
 
 /**
  * Reconcilia las runtime deps del host contra su clasificación (shared | native | bundled).
