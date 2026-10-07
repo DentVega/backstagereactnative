@@ -1,5 +1,5 @@
 import {ScriptManager, Script} from '@callstack/repack/client';
-import type {ChunkLoader, EntryComponent} from '@dentvega/host-runtime';
+import type {ChunkLoader, EntryComponent} from '@dentvega/miniapp-runtime';
 import type {ResolveResponse} from '@dentvega/miniapp-contract';
 import {chunkBaseAndQuery, remoteChunkUrl, isDevServerUrl} from './chunkUrls';
 

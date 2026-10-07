@@ -1,7 +1,7 @@
 import React, {useMemo, useState} from 'react';
 import {Pressable, SafeAreaView, ScrollView, View} from 'react-native';
 import {AppText, useTheme} from '@dentvega/ui-kit';
-import {createScopedGrant} from '@dentvega/host-runtime';
+import {createScopedGrant} from '@dentvega/miniapp-runtime';
 import type {Capability} from '@dentvega/miniapp-contract';
 // Fixed slots aliased by rspack.config.mjs to each local miniapp's ./Entry (or the
 // NoMiniapp placeholder). Static imports → all are in the host graph → editing ANY

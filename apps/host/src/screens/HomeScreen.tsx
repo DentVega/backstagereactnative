@@ -4,7 +4,7 @@ import {FlashList} from '@shopify/flash-list';
 import {useQuery} from '@tanstack/react-query';
 import type {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {AppText, Box, Button, Card, useTheme} from '@dentvega/ui-kit';
-import {httpCatalogClient, type MiniappSummary} from '@dentvega/host-runtime';
+import {httpCatalogClient, type MiniappSummary} from '@dentvega/miniapp-runtime';
 import type {MiniappId} from '@dentvega/miniapp-contract';
 import type {RootStackParamList} from '../navigation';
 import {useSession} from '../session/store';

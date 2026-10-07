@@ -50,12 +50,12 @@ importers:
 
   apps/host:
     dependencies:
-      '@dentvega/host-runtime':
-        specifier: workspace:*
-        version: link:../../packages/host-runtime
       '@dentvega/miniapp-contract':
-        specifier: workspace:*
-        version: link:../../packages/miniapp-contract
+        specifier: ^0.4.1
+        version: 0.4.1
+      '@dentvega/miniapp-runtime':
+        specifier: ^0.1.0
+        version: 0.1.0(react-native@0.76.6(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7))(@react-native-community/cli-server-api@15.0.1)(@types/react@18.3.31)(react@18.3.1))(react@18.3.1)
       '@dentvega/ui-kit':
         specifier: workspace:*
         version: link:../../packages/ui-kit
@@ -982,6 +982,15 @@ packages:
         optional: true
       webpack:
         optional: true
+
+  '@dentvega/miniapp-contract@0.4.1':
+    resolution: {integrity: sha512-9gQGyhShPCv6kZDMCc/Wr5Ma8KpUTfH+W1nw9wHL9Ko/4vqbYNDdP/ydojGnnJcgCChTUzz8cYnI1tShgu1NAQ==}
+
+  '@dentvega/miniapp-runtime@0.1.0':
+    resolution: {integrity: sha512-j6dhqfbLnFyKQPQEjG5T/g399dPTLgElmFuUBzBwDlKy2ogRYqkcbb3xb43AT7bjLoHNd5UGQZ//Tu6mS7P6ug==}
+    peerDependencies:
+      react: '>=18'
+      react-native: '>=0.76'
 
   '@discoveryjs/json-ext@0.5.7':
     resolution: {integrity: sha512-dBVuXR082gk3jsFp7Rd/JI4kytwGHecnCoTtXFb7DB6CNHp4rg5k1bhg0nWdLGLnOV71lmDzGQaLMy8iPLY0pw==}
@@ -6343,6 +6352,17 @@ snapshots:
       - tslib
       - uglify-js
       - utf-8-validate
+
+  '@dentvega/miniapp-contract@0.4.1':
+    dependencies:
+      semver: 7.8.5
+
+  '@dentvega/miniapp-runtime@0.1.0(react-native@0.76.6(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7))(@react-native-community/cli-server-api@15.0.1)(@types/react@18.3.31)(react@18.3.1))(react@18.3.1)':
+    dependencies:
+      '@dentvega/miniapp-contract': 0.4.1
+      '@noble/curves': 2.3.0
+      react: 18.3.1
+      react-native: 0.76.6(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7))(@react-native-community/cli-server-api@15.0.1)(@types/react@18.3.31)(react@18.3.1)
 
   '@discoveryjs/json-ext@0.5.7': {}
 

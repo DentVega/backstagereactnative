@@ -1,4 +1,4 @@
-import type {HostProvided} from '@dentvega/host-runtime';
+import type {HostProvided} from '@dentvega/miniapp-runtime';
 import type {SemVer} from '@dentvega/miniapp-contract';
 
 /**
