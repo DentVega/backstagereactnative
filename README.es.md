@@ -14,8 +14,8 @@ Una super-app bancaria donde las funciones (cuentas, tarjetas, transferencias…
 ```mermaid
 flowchart LR
     subgraph This["Este repo — Host Móvil"]
-        HOST[App host] --> RT[host-runtime<br/>resolve → verifica → monta → fallback]
-        RT --> UI[ui-kit]
+        HOST[App host] --> RT[miniapp-runtime<br/>resolve → verifica → monta → fallback]
+        HOST --> UI[ui-kit]
         RT --> C[miniapp-contract]
     end
     RT -->|"GET /api/resolve"| BS[Backstage Web]
@@ -30,10 +30,11 @@ apps/
   host/                     Host React Native (Re.Pack / Module Federation v2)
 packages/
   miniapp-contract/         Contrato de tipos compartido: manifest, forma del resolve, capabilities, version-skew
-  host-runtime/             Loader: resolve → chequeo de integridad → monta remote → fallback; sesión + capabilities acotadas
   ui-kit/                   Primitivas del design-system compartidas (StyleSheet + tokens)
 memory-bank/                Artefactos del proceso AI-DLC (ver abajo)
 ```
+
+El loader (resolve → chequeo de integridad/firma → monta remote → fallback; capabilities acotadas) es el paquete público de npm **`@dentvega/miniapp-runtime`** (código: [`repack-miniapps/packages/miniapp-runtime`](https://github.com/DentVega/repack-miniapps/tree/main/packages/miniapp-runtime)). Es headless: el host inyecta su UI de carga/error de `ui-kit` con `render={miniappRender}` (`apps/host/src/miniappRender.tsx`).
 
 ## Qué lo hace interesante
 

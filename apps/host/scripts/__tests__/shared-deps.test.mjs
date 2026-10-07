@@ -69,10 +69,10 @@ test("reconcileDeps: bundled stale + conflicting", () => {
 });
 
 test("reconcileDeps: todo clasificado → sin violaciones", () => {
-  const r = reconcileDeps(["react", "rn-screens", "@dentvega/host-runtime"], {
+  const r = reconcileDeps(["react", "rn-screens", "@dentvega/miniapp-runtime"], {
     shared: ["react"],
     native: ["rn-screens"],
-    bundled: ["@dentvega/host-runtime"],
+    bundled: ["@dentvega/miniapp-runtime"],
   });
   assert.deepEqual(r, { unclassified: [], phantomShared: [], staleBundled: [], conflicting: [] });
 });
