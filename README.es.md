@@ -16,7 +16,7 @@ flowchart LR
     subgraph This["Este repo — Host Móvil"]
         HOST[App host] --> RT[miniapp-runtime<br/>resolve → verifica → monta → fallback]
         HOST --> UI[ui-kit]
-        RT --> C[miniapp-contract]
+        RT --> C[miniapp-contract<br/>npm]
     end
     RT -->|"GET /api/resolve"| BS[Backstage Web]
     BS -->|URL del chunk + manifest| RT
@@ -29,7 +29,6 @@ flowchart LR
 apps/
   host/                     Host React Native (Re.Pack / Module Federation v2)
 packages/
-  miniapp-contract/         Contrato de tipos compartido: manifest, forma del resolve, capabilities, version-skew
   ui-kit/                   Primitivas del design-system compartidas (StyleSheet + tokens)
 memory-bank/                Artefactos del proceso AI-DLC (ver abajo)
 ```
@@ -40,7 +39,7 @@ El loader (resolve → chequeo de integridad/firma → monta remote → fallback
 
 - 🧩 **Module Federation en React Native** vía **Re.Pack** (Rspack) — no Metro. Host + chunks remotos bajo demanda, singletons compartidos (React, RN, React Query).
 - 🔐 **Frontera de seguridad** — la auth/sesión vive solo en el host; las miniapps reciben **capabilities acotadas y revocables**, nunca credenciales crudas. La **integridad** del chunk (sha256) se verifica antes de montar, y la **firma** criptográfica (autenticidad, contra un trust bundle firmado por el root) está implementada en las tres capas y **validada en producción** — la flota publica chunks firmados que verifican contra el trust bundle; el host verifica en modo **warn** por default y pasa a **enforce** (bloquea sin firma) vía el flag build-time `SIGNATURE_MODE`.
-- 📜 **Contrato versionado** — el host y Backstage comparten exactamente una cosa: `@org/miniapp-contract`. El host resuelve miniapps por **rango semver**, así controla su propia ventana de compatibilidad.
+- 📜 **Contrato versionado** — el host y Backstage comparten exactamente una cosa: `@dentvega/miniapp-contract` (npm). El host resuelve miniapps por **rango semver**, así controla su propia ventana de compatibilidad.
 - 🤖 **Flujo AI-DLC** — todo el proyecto se construyó con un ciclo de entrega asistido por IA (Inception → bolts de Construcción → Operations), con cada decisión trazada en `memory-bank/` (requisitos, ADRs, registros de bolt). Es un showcase de *cómo* se dirigió el trabajo, no solo del resultado.
 
 ## Stack
