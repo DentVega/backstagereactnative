@@ -1,6 +1,6 @@
 import React from "react";
 import { StyleSheet, View, type ViewProps } from "react-native";
-import { useTheme } from "../theme/ThemeProvider";
+import { useTheme } from "../theme/ThemeProvider.js";
 
 export type CardProps = ViewProps;
 

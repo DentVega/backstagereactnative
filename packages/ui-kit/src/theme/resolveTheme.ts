@@ -1,6 +1,6 @@
-import { lightTheme } from "./light";
-import { darkTheme } from "./dark";
-import type { Theme } from "./tokens";
+import { lightTheme } from "./light.js";
+import { darkTheme } from "./dark.js";
+import type { Theme } from "./tokens.js";
 
 /** Deterministic palette selection (pure, unit-testable). */
 export function resolveTheme(scheme: "light" | "dark"): Theme {

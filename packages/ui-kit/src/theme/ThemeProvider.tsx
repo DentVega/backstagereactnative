@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useMemo } from "react";
 import { useColorScheme } from "react-native";
-import type { Theme } from "./tokens";
-import { resolveTheme } from "./resolveTheme";
+import type { Theme } from "./tokens.js";
+import { resolveTheme } from "./resolveTheme.js";
 
 const ThemeContext = createContext<Theme | null>(null);
 

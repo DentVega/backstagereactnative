@@ -1,14 +1,20 @@
 {
   "name": "@dentvega/ui-kit",
-  "version": "0.1.0",
-  "description": "Themed RN primitives and design tokens (StyleSheet + tokens, ADR-001).",
-  "license": "UNLICENSED",
+  "version": "0.1.1",
+  "description": "Themed React Native primitives and design tokens used by the miniapp host and its miniapps (shared as a Module Federation singleton).",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DentVega/backstagereactnative.git",
+    "directory": "packages/ui-kit"
+  },
+  "homepage": "https://github.com/DentVega/backstagereactnative/tree/main/packages/ui-kit#readme",
+  "type": "module",
   "main": "src/index.ts",
   "types": "src/index.ts",
   "files": ["dist"],
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com",
-    "access": "restricted",
+    "access": "public",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "exports": {
@@ -20,6 +26,7 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
+    "check:dist": "node ../../scripts/check-dist-imports.mjs dist",
     "typecheck": "tsc --noEmit",
     "test": "jest",
     "prepack": "pnpm build"

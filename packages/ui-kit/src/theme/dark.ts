@@ -1,4 +1,4 @@
-import { radii, spacing, typography, type Theme } from "./tokens";
+import { radii, spacing, typography, type Theme } from "./tokens.js";
 
 export const darkTheme: Theme = {
   scheme: "dark",

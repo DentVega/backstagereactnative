@@ -1,7 +1,7 @@
 import React from "react";
 import { StyleSheet, Text, type TextProps } from "react-native";
-import { useTheme } from "../theme/ThemeProvider";
-import type { ColorToken, TypeToken } from "../theme/tokens";
+import { useTheme } from "../theme/ThemeProvider.js";
+import type { ColorToken, TypeToken } from "../theme/tokens.js";
 
 export interface AppTextProps extends TextProps {
   variant?: TypeToken;

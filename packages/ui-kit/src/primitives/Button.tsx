@@ -1,7 +1,7 @@
 import React from "react";
 import { Pressable, StyleSheet, type PressableProps } from "react-native";
-import { useTheme } from "../theme/ThemeProvider";
-import { AppText } from "./AppText";
+import { useTheme } from "../theme/ThemeProvider.js";
+import { AppText } from "./AppText.js";
 
 export interface ButtonProps extends Omit<PressableProps, "children"> {
   label: string;
