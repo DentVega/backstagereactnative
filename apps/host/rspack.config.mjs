@@ -69,6 +69,11 @@ export default Repack.defineRspackConfig({
     : undefined,
   resolve: {
     ...Repack.getResolveOptions(),
+    // ui-kit (workspace, se consume desde `src`) usa imports `.js` para que su dist sea ESM
+    // válido; acá apuntan al `.ts`/`.tsx` real.
+    extensionAlias: {
+      '.js': ['.ts', '.tsx', '.js'],
+    },
     alias: {
       ...devMiniappAliases,
     },

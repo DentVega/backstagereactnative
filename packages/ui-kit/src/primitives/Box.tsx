@@ -1,7 +1,7 @@
 import React from "react";
 import { View, type ViewProps } from "react-native";
-import { useTheme } from "../theme/ThemeProvider";
-import type { ColorToken, RadiusToken, SpacingToken } from "../theme/tokens";
+import { useTheme } from "../theme/ThemeProvider.js";
+import type { ColorToken, RadiusToken, SpacingToken } from "../theme/tokens.js";
 
 export interface BoxProps extends ViewProps {
   padding?: SpacingToken;

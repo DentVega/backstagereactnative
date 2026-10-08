@@ -17,6 +17,8 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Build packages
         run: pnpm build:packages
+      - name: Check ui-kit dist (ESM imports con extensión)
+        run: pnpm --filter @dentvega/ui-kit check:dist
       - name: Typecheck
         run: pnpm -r --if-present typecheck
       - name: Unit tests (jest — packages + host)
