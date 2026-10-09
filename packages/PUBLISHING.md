@@ -1,46 +1,36 @@
-# Publicar y consumir los paquetes `@org/*`
+# Publicar `@dentvega/ui-kit`
 
-Los paquetes compartidos (`@org/miniapp-contract`, `@org/ui-kit`) se publican a **GitHub Packages**
-y se consumen por versión desde repos externos (miniapps). Patrón de **doble consumo** (ADR-010):
-en el monorepo se consumen como **fuente** (`main: src`); al publicar, `publishConfig` (pnpm)
-sobreescribe a **`dist`**.
+`ui-kit` es el único paquete publicado desde este repo. Va a **npm público** (MIT). El resto del
+scope vive en [`repack-miniapps`](https://github.com/DentVega/repack-miniapps):
+`@dentvega/miniapp-contract`, `@dentvega/miniapp-runtime`, `@dentvega/miniapp-storage`.
 
-## Publicar (desde el repo móvil)
+**Doble consumo (ADR-010):** en el monorepo el host lo consume como **fuente** (`main: src`); al
+publicar, `publishConfig` lo cambia a **`dist`**. Los imports relativos llevan `.js` explícito
+(ESM válido); el host los resuelve al `.ts` con `resolve.extensionAlias` (Rspack) y
+`moduleNameMapper` (jest).
+
+## Publicar
+
 ```bash
-# 1) build (lo hace prepack, pero se puede correr suelto)
-pnpm --filter @org/ui-kit build
-pnpm --filter @org/miniapp-contract build
-
-# 2) verificar el tarball (aplica publishConfig → main:dist, contenido dist/)
-pnpm --filter @org/ui-kit pack
-pnpm --filter @org/miniapp-contract pack
-
-# 3) publicar (requiere org real en el scope @org + token write:packages)
-#    GITHUB_TOKEN con write:packages en el entorno
-pnpm --filter @org/miniapp-contract publish --no-git-checks
-pnpm --filter @org/ui-kit publish --no-git-checks
+pnpm --filter @dentvega/ui-kit build
+pnpm --filter @dentvega/ui-kit check:dist      # todo import relativo del dist con .js
+pnpm --filter @dentvega/ui-kit pack            # revisar: solo dist/, LICENSE, README
+npm whoami                                     # si da 401: npm login
+pnpm --filter @dentvega/ui-kit publish --no-git-checks
 ```
-> ⚠️ Reemplaza `@org` por tu **org/usuario real de GitHub** en los `name` de cada paquete
-> y en el `.npmrc`. Sin eso, `pack` funciona (verificación) pero `publish` no.
 
-## Consumir desde un repo de miniapp (externo)
-`.npmrc` del repo consumidor:
-```
-@org:registry=https://npm.pkg.github.com
-//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}   # token con read:packages
-```
-`package.json`:
+La cuenta tiene 2FA: publica una persona desde su terminal. Si npm deja la versión *staged*,
+aprobarla en npmjs.com → paquete → **Staged Packages** → **Approve**.
+
+## Consumir (miniapps)
+
 ```json
-{
-  "dependencies": {
-    "@org/miniapp-contract": "^0.1.0",
-    "@org/ui-kit": "^0.1.0"
-  }
-}
+{ "dependencies": { "@dentvega/miniapp-contract": "^0.4.1", "@dentvega/ui-kit": "^0.1.1" } }
 ```
-Luego `pnpm install` (o npm). React y React Native son **peerDependencies** de `ui-kit`
-— los provee la app consumidora (singletons federados).
+
+Sin `.npmrc` especial. `react` y `react-native` son peers: los provee la app. En runtime la miniapp
+usa el `ui-kit` del host (singleton de Module Federation, `requiredVersion: '^0.1.0'`).
 
 ## Versionado
-- Semver. Un cambio **incompatible** del contrato (shape del manifest / resolve) = **major**
-  + changelog; coordinar host y miniapps.
+
+Semver. Un cambio incompatible de `ui-kit` es una release del host: el host es quien lo comparte.

@@ -16,7 +16,7 @@ flowchart LR
     subgraph This["This repo — Mobile Host"]
         HOST[Host app] --> RT[miniapp-runtime<br/>resolve → verify → mount → fallback]
         HOST --> UI[ui-kit]
-        RT --> C[miniapp-contract]
+        RT --> C[miniapp-contract<br/>npm]
     end
     RT -->|"GET /api/resolve"| BS[Backstage Web]
     BS -->|chunk URL + manifest| RT
@@ -29,7 +29,6 @@ flowchart LR
 apps/
   host/                     React Native host (Re.Pack / Module Federation v2)
 packages/
-  miniapp-contract/         Shared type contract: manifest, resolve shape, capabilities, version-skew logic
   ui-kit/                   Shared design-system primitives (StyleSheet + tokens)
 memory-bank/                AI-DLC process artifacts (see below)
 ```
@@ -40,7 +39,7 @@ The loader (resolve → integrity/signature check → mount remote → fallback;
 
 - 🧩 **Module Federation on React Native** via **Re.Pack** (Rspack) — not Metro. Host + on-demand remote chunks, shared singletons (React, RN, React Query).
 - 🔐 **Security boundary** — auth/session lives in the host only; miniapps receive **scoped, revocable capabilities**, never raw credentials. Chunk **integrity** (sha256) is verified before mount, and cryptographic **signing** (authenticity, against a root-signed trust bundle) is implemented across all layers and **validated in production** — the fleet publishes signed chunks that verify against the trust bundle; the host verifies in **warn** mode by default and flips to **enforce** (blocks unsigned) via the build-time `SIGNATURE_MODE` flag.
-- 📜 **Versioned contract** — the host and Backstage share exactly one thing: `@org/miniapp-contract`. The host resolves miniapps by **semver range**, so it controls its own compatibility window.
+- 📜 **Versioned contract** — the host and Backstage share exactly one thing: `@dentvega/miniapp-contract` (npm). The host resolves miniapps by **semver range**, so it controls its own compatibility window.
 - 🤖 **AI-DLC workflow** — the whole project was built through an AI-assisted delivery lifecycle (Inception → Construction bolts → Operations), with every decision traced in `memory-bank/` (requirements, ADRs, bolt records). It's a showcase of *how* the work was driven, not just the result.
 
 ## Tech stack

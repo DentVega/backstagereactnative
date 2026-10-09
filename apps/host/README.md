@@ -20,7 +20,7 @@ Desde la **raíz del repo**:
 
 ```bash
 pnpm install
-pnpm build:packages    # compila ui-kit y miniapp-contract (dist); el runtime viene de npm (@dentvega/miniapp-runtime)
+pnpm build:packages    # compila ui-kit (dist); contract y runtime vienen de npm
 ```
 
 ---

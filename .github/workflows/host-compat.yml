@@ -40,10 +40,6 @@ jobs:
         if: steps.changes.outputs.hostdeps == 'true'
         run: corepack enable && pnpm install --frozen-lockfile
 
-      - name: Build contract package
-        if: steps.changes.outputs.hostdeps == 'true'
-        run: pnpm --filter @dentvega/miniapp-contract build # dist para el import del script
-
       - name: Blast-radius check
         if: steps.changes.outputs.hostdeps == 'true'
         working-directory: apps/host
