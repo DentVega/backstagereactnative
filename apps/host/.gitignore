@@ -75,3 +75,7 @@ host-contract.json
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+# Tipos federados generados por Module Federation (dts está desactivado; los tipos
+# reales de los remotes viven en src/remotes.d.ts)
+@mf-types/
