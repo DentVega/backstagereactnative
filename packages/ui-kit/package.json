@@ -1,6 +1,6 @@
 {
   "name": "@dentvega/ui-kit",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Themed React Native primitives and design tokens used by the miniapp host and its miniapps (shared as a Module Federation singleton).",
   "license": "MIT",
   "repository": {
