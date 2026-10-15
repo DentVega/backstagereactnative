@@ -20,6 +20,14 @@ const require = createRequire(import.meta.url);
 // Resolve the real installed version so each eager share is provided correctly.
 const pkgVersion = (name) => require(`${name}/package.json`).version;
 
+// ui-kit (workspace, se consume desde `src`) usa imports `.js` para que su dist sea ESM
+// válido. Solo dentro de su `src` esos `.js` apuntan al `.ts`/`.tsx` real (regla acotada
+// en module.rules, no un extensionAlias global que afecte al resto del bundle).
+const uiKitSrc = path.join(
+  path.dirname(require.resolve('@dentvega/ui-kit/package.json')),
+  'src',
+);
+
 // Dev-mount (Mode 1): alias @dev-miniapp-0..N-1 to local miniapps' `src/Entry`
 // (empty slots → the NoMiniapp placeholder). Reads DEV_MINIAPP_PATHS (CSV) or the
 // legacy single DEV_MINIAPP_PATH. Each active slot's {name, capabilities} (from
@@ -69,17 +77,18 @@ export default Repack.defineRspackConfig({
     : undefined,
   resolve: {
     ...Repack.getResolveOptions(),
-    // ui-kit (workspace, se consume desde `src`) usa imports `.js` para que su dist sea ESM
-    // válido; acá apuntan al `.ts`/`.tsx` real.
-    extensionAlias: {
-      '.js': ['.ts', '.tsx', '.js'],
-    },
     alias: {
       ...devMiniappAliases,
     },
   },
   module: {
     rules: [
+      {
+        include: uiKitSrc,
+        resolve: {
+          extensionAlias: { '.js': ['.ts', '.tsx', '.js'] },
+        },
+      },
       {
         test: /\.[cm]?[jt]sx?$/,
         type: 'javascript/auto',
