@@ -16,7 +16,7 @@
  *     mayor de react-native (rompe miniapps que dependían de lo viejo).
  *   - patch: tweaks que NO afectan el contrato.
  */
-export const CONTRACT_VERSION = "0.1.0";
+export const CONTRACT_VERSION = "0.2.0";
 
 /**
  * Procedencia de capabilities: en qué contractVersion se INTRODUJO cada singleton
